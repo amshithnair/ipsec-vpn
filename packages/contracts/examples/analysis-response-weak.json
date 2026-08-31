@@ -1,0 +1,150 @@
+{
+  "capture_id": "770e8400-e29b-41d4-a716-446655440002",
+  "analysis_id": "880e8400-e29b-41d4-a716-446655440003",
+  "timestamp": "2026-09-01T10:35:00Z",
+  "status": "completed",
+  "classification": {
+    "protocol": "IPsec",
+    "protocol_confidence": 0.95,
+    "ike_version": "IKEv1",
+    "ipsec_mode": "tunnel",
+    "sub_protocols": ["IKE", "ESP"]
+  },
+  "crypto_analysis": {
+    "encryption": {
+      "algorithm": "3DES-CBC",
+      "key_length": 168,
+      "strength": "weak"
+    },
+    "authentication": {
+      "algorithm": "SHA-1",
+      "hmac_length": 160,
+      "strength": "deprecated"
+    },
+    "dh_group": {
+      "group_number": 2,
+      "name": "modp1024",
+      "strength": "weak"
+    },
+    "pfs": {
+      "detected": false,
+      "group": null
+    }
+  },
+  "security_assessment": {
+    "risk_score": 82,
+    "severity": "CRITICAL",
+    "crypto_strength_score": 22,
+    "findings": [
+      {
+        "id": "ENC-002",
+        "category": "encryption",
+        "severity": "HIGH",
+        "title": "Weak encryption: 3DES",
+        "description": "3DES has an effective security level of ~112 bits and is vulnerable to Sweet32 birthday attacks. NIST deprecated 3DES after 2023.",
+        "evidence": {"field": "encryption", "value": "3DES-CBC"},
+        "recommendation": "Replace 3DES with AES-256"
+      },
+      {
+        "id": "ENC-006",
+        "category": "encryption",
+        "severity": "MEDIUM",
+        "title": "Non-AEAD cipher mode: CBC",
+        "description": "CBC mode does not provide built-in authentication and may be vulnerable to padding oracle attacks.",
+        "evidence": {"field": "encryption_mode", "value": "CBC"},
+        "recommendation": "Migrate to GCM mode"
+      },
+      {
+        "id": "AUTH-002",
+        "category": "authentication",
+        "severity": "HIGH",
+        "title": "Deprecated authentication: SHA-1",
+        "description": "SHA-1 has known collision vulnerabilities. While HMAC-SHA-1 is less immediately affected, it is deprecated by NIST.",
+        "evidence": {"field": "authentication", "value": "SHA-1"},
+        "recommendation": "Upgrade to SHA-256"
+      },
+      {
+        "id": "KE-002",
+        "category": "key_exchange",
+        "severity": "HIGH",
+        "title": "Weak key exchange: DH Group 2",
+        "description": "1024-bit MODP is considered vulnerable to well-resourced adversaries (Logjam attack, 2015).",
+        "evidence": {"field": "dh_group", "value": 2},
+        "recommendation": "Upgrade to DH Group 14 or higher"
+      },
+      {
+        "id": "PROTO-001",
+        "category": "protocol",
+        "severity": "HIGH",
+        "title": "Legacy protocol: IKEv1",
+        "description": "IKEv1 has known security weaknesses including identity protection issues and lack of built-in DoS protection.",
+        "evidence": {"field": "ike_version", "value": "IKEv1"},
+        "recommendation": "Migrate to IKEv2"
+      },
+      {
+        "id": "CFG-001",
+        "category": "configuration",
+        "severity": "HIGH",
+        "title": "Missing Perfect Forward Secrecy",
+        "description": "Without PFS, compromise of long-term keys allows decryption of all past sessions.",
+        "evidence": {"field": "pfs", "value": false},
+        "recommendation": "Enable PFS"
+      }
+    ],
+    "recommendations": [
+      {
+        "id": "R001",
+        "priority": "CRITICAL",
+        "category": "encryption",
+        "title": "Replace 3DES with AES-256-GCM",
+        "description": "3DES is deprecated and vulnerable to Sweet32 attacks.",
+        "action": "Upgrade to AES-256-GCM for strong authenticated encryption."
+      },
+      {
+        "id": "R002",
+        "priority": "HIGH",
+        "category": "authentication",
+        "title": "Upgrade SHA-1 to SHA-256",
+        "description": "SHA-1 has known collision vulnerabilities.",
+        "action": "Use HMAC-SHA-256 or HMAC-SHA-384 for integrity verification."
+      },
+      {
+        "id": "R003",
+        "priority": "HIGH",
+        "category": "key_exchange",
+        "title": "Upgrade DH Group 2 to Group 14+",
+        "description": "1024-bit MODP is vulnerable to Logjam attack.",
+        "action": "Migrate to DH Group 14 (2048-bit) or ECDH groups (19, 20, 21)."
+      },
+      {
+        "id": "R004",
+        "priority": "HIGH",
+        "category": "protocol",
+        "title": "Migrate from IKEv1 to IKEv2",
+        "description": "IKEv1 has known weaknesses.",
+        "action": "Deploy IKEv2 for improved security, NAT-T, and DoS resistance."
+      },
+      {
+        "id": "R005",
+        "priority": "HIGH",
+        "category": "configuration",
+        "title": "Enable Perfect Forward Secrecy",
+        "description": "PFS protects past sessions from future key compromise.",
+        "action": "Enable PFS with DH Group 14 or ECDH groups for child SAs."
+      }
+    ]
+  },
+  "confidence": {
+    "overall_score": 0.91,
+    "classification_confidence": 0.95,
+    "extraction_completeness": 0.80,
+    "model_version": "rules-v1"
+  },
+  "metadata": {
+    "processing_time_ms": 980,
+    "packets_analyzed": 89,
+    "ipsec_packets": 72,
+    "capture_duration_seconds": 30.1,
+    "file_size_bytes": 15360
+  }
+}

@@ -1,0 +1,412 @@
+# ═══════════════════════════════════════════════════════════════
+# IPSEC-VPN Security Rules Engine Configuration
+# Version: rules-v1
+# ═══════════════════════════════════════════════════════════════
+#
+# Scoring Model:
+#   Base score starts at 0 (best). Penalties are added for each
+#   violation found. Final score is clamped to 0–100.
+#
+# Severity Thresholds:
+#   LOW:      0 – 25
+#   MEDIUM:  26 – 50
+#   HIGH:    51 – 75
+#   CRITICAL: 76 – 100
+#
+# Weight Distribution:
+#   encryption:   30%
+#   authentication: 25%
+#   key_exchange:  20%
+#   protocol:      15%
+#   configuration: 10%
+
+version: "rules-v1"
+
+severity_thresholds:
+  low: 25
+  medium: 50
+  high: 75
+  critical: 100
+
+scoring_weights:
+  encryption: 0.30
+  authentication: 0.25
+  key_exchange: 0.20
+  protocol: 0.15
+  configuration: 0.10
+
+# ── Encryption Rules ──
+encryption_rules:
+  - id: ENC-001
+    name: "DES encryption detected"
+    condition:
+      algorithm_match:
+        - "DES"
+        - "DES-CBC"
+    severity: CRITICAL
+    penalty: 40
+    category: encryption
+    finding:
+      title: "Critically weak encryption: DES"
+      description: "DES uses a 56-bit key and is trivially breakable with modern hardware. It was officially retired by NIST in 2005."
+    recommendation:
+      title: "Replace DES with AES-256-GCM"
+      action: "Upgrade to AES-256-GCM or AES-256-CBC for strong confidentiality."
+      priority: CRITICAL
+
+  - id: ENC-002
+    name: "3DES encryption detected"
+    condition:
+      algorithm_match:
+        - "3DES"
+        - "3DES-CBC"
+    severity: HIGH
+    penalty: 30
+    category: encryption
+    finding:
+      title: "Weak encryption: 3DES"
+      description: "3DES has an effective security level of ~112 bits and is vulnerable to Sweet32 birthday attacks. NIST deprecated 3DES after 2023."
+    recommendation:
+      title: "Replace 3DES with AES-256"
+      action: "Migrate to AES-128-GCM or AES-256-GCM."
+      priority: HIGH
+
+  - id: ENC-003
+    name: "AES-128 encryption detected"
+    condition:
+      algorithm_match:
+        - "AES-128"
+        - "AES-128-CBC"
+        - "AES-128-GCM"
+        - "AES-128-CTR"
+    severity: INFO
+    penalty: 5
+    category: encryption
+    finding:
+      title: "Acceptable encryption: AES-128"
+      description: "AES-128 provides adequate security but AES-256 is preferred for sensitive traffic."
+    recommendation:
+      title: "Consider upgrading to AES-256"
+      action: "AES-256-GCM provides a stronger security margin for long-term confidentiality."
+      priority: LOW
+
+  - id: ENC-004
+    name: "AES-256 encryption detected"
+    condition:
+      algorithm_match:
+        - "AES-256"
+        - "AES-256-CBC"
+        - "AES-256-GCM"
+        - "AES-256-CTR"
+    severity: INFO
+    penalty: 0
+    category: encryption
+    finding:
+      title: "Strong encryption: AES-256"
+      description: "AES-256 provides excellent confidentiality with a strong security margin."
+    recommendation:
+      title: "Continue using AES-256"
+      action: "AES-256-GCM is the recommended mode for authenticated encryption."
+      priority: INFO
+
+  - id: ENC-005
+    name: "NULL encryption detected"
+    condition:
+      algorithm_match:
+        - "NULL"
+        - "NONE"
+    severity: CRITICAL
+    penalty: 50
+    category: encryption
+    finding:
+      title: "No encryption: NULL cipher"
+      description: "Traffic is transmitted in plaintext. Any network observer can read the content."
+    recommendation:
+      title: "Enable encryption immediately"
+      action: "Configure AES-256-GCM encryption on the VPN tunnel."
+      priority: CRITICAL
+
+  - id: ENC-006
+    name: "CBC mode without AEAD"
+    condition:
+      algorithm_match:
+        - "AES-128-CBC"
+        - "AES-256-CBC"
+        - "3DES-CBC"
+        - "DES-CBC"
+    severity: MEDIUM
+    penalty: 10
+    category: encryption
+    finding:
+      title: "Non-AEAD cipher mode: CBC"
+      description: "CBC mode does not provide built-in authentication and may be vulnerable to padding oracle attacks. AEAD modes like GCM are preferred."
+    recommendation:
+      title: "Migrate to GCM mode"
+      action: "Use AES-256-GCM or AES-128-GCM for authenticated encryption."
+      priority: MEDIUM
+
+# ── Authentication Rules ──
+authentication_rules:
+  - id: AUTH-001
+    name: "MD5 authentication detected"
+    condition:
+      algorithm_match:
+        - "MD5"
+        - "HMAC-MD5"
+        - "HMAC-MD5-96"
+    severity: CRITICAL
+    penalty: 35
+    category: authentication
+    finding:
+      title: "Broken authentication: MD5"
+      description: "MD5 is cryptographically broken. Collision attacks are practical and undermine integrity guarantees."
+    recommendation:
+      title: "Replace MD5 with SHA-256 or SHA-384"
+      action: "Use HMAC-SHA-256 or HMAC-SHA-384 for integrity verification."
+      priority: CRITICAL
+
+  - id: AUTH-002
+    name: "SHA-1 authentication detected"
+    condition:
+      algorithm_match:
+        - "SHA-1"
+        - "SHA1"
+        - "HMAC-SHA-1"
+        - "HMAC-SHA1"
+        - "HMAC-SHA1-96"
+    severity: HIGH
+    penalty: 25
+    category: authentication
+    finding:
+      title: "Deprecated authentication: SHA-1"
+      description: "SHA-1 has known collision vulnerabilities (SHAttered, 2017). While HMAC-SHA-1 is less immediately affected, it is deprecated by NIST."
+    recommendation:
+      title: "Upgrade to SHA-256"
+      action: "Migrate to HMAC-SHA-256 for integrity protection."
+      priority: HIGH
+
+  - id: AUTH-003
+    name: "SHA-256 authentication detected"
+    condition:
+      algorithm_match:
+        - "SHA-256"
+        - "SHA256"
+        - "HMAC-SHA-256"
+        - "HMAC-SHA256"
+    severity: INFO
+    penalty: 0
+    category: authentication
+    finding:
+      title: "Strong authentication: SHA-256"
+      description: "SHA-256 provides robust integrity protection with no known practical attacks."
+    recommendation:
+      title: "Continue using SHA-256"
+      action: "SHA-256 is the recommended minimum for HMAC-based integrity."
+      priority: INFO
+
+  - id: AUTH-004
+    name: "SHA-384/SHA-512 authentication detected"
+    condition:
+      algorithm_match:
+        - "SHA-384"
+        - "SHA384"
+        - "SHA-512"
+        - "SHA512"
+        - "HMAC-SHA-384"
+        - "HMAC-SHA-512"
+    severity: INFO
+    penalty: 0
+    category: authentication
+    finding:
+      title: "Strong authentication: SHA-384/512"
+      description: "SHA-384/512 provides excellent integrity protection."
+    recommendation:
+      title: "Continue using current authentication"
+      action: "Current authentication algorithm exceeds minimum requirements."
+      priority: INFO
+
+# ── Key Exchange (DH Group) Rules ──
+key_exchange_rules:
+  - id: KE-001
+    name: "DH Group 1 (768-bit MODP)"
+    condition:
+      dh_group: 1
+    severity: CRITICAL
+    penalty: 35
+    category: key_exchange
+    finding:
+      title: "Critically weak key exchange: DH Group 1"
+      description: "768-bit MODP is breakable with current computing resources. The discrete logarithm can be computed in practical time."
+    recommendation:
+      title: "Upgrade to DH Group 14 or higher"
+      action: "Use DH Group 14 (2048-bit) minimum, or DH Groups 19-21 (ECDH) for better performance."
+      priority: CRITICAL
+
+  - id: KE-002
+    name: "DH Group 2 (1024-bit MODP)"
+    condition:
+      dh_group: 2
+    severity: HIGH
+    penalty: 30
+    category: key_exchange
+    finding:
+      title: "Weak key exchange: DH Group 2"
+      description: "1024-bit MODP is considered vulnerable to well-resourced adversaries (Logjam attack, 2015)."
+    recommendation:
+      title: "Upgrade to DH Group 14 or higher"
+      action: "Migrate to DH Group 14 (2048-bit MODP) or ECDH groups (19, 20, 21)."
+      priority: HIGH
+
+  - id: KE-003
+    name: "DH Group 5 (1536-bit MODP)"
+    condition:
+      dh_group: 5
+    severity: MEDIUM
+    penalty: 15
+    category: key_exchange
+    finding:
+      title: "Marginal key exchange: DH Group 5"
+      description: "1536-bit MODP provides marginal security and does not meet current NIST recommendations."
+    recommendation:
+      title: "Upgrade to DH Group 14"
+      action: "Use DH Group 14 (2048-bit MODP) for adequate security."
+      priority: MEDIUM
+
+  - id: KE-004
+    name: "DH Group 14 (2048-bit MODP)"
+    condition:
+      dh_group: 14
+    severity: INFO
+    penalty: 3
+    category: key_exchange
+    finding:
+      title: "Acceptable key exchange: DH Group 14"
+      description: "2048-bit MODP meets NIST minimum recommendations through 2030."
+    recommendation:
+      title: "Consider ECDH groups for better performance"
+      action: "DH Groups 19 (256-bit ECDH) or 20 (384-bit ECDH) offer equivalent or better security with lower computational cost."
+      priority: LOW
+
+  - id: KE-005
+    name: "DH Group 15-18 (3072-8192 bit MODP)"
+    condition:
+      dh_group_range: [15, 18]
+    severity: INFO
+    penalty: 0
+    category: key_exchange
+    finding:
+      title: "Strong key exchange: DH Group 15-18"
+      description: "Large MODP groups provide excellent security but with higher computational cost than ECDH alternatives."
+    recommendation:
+      title: "Consider ECDH for performance"
+      action: "ECDH groups offer equivalent security with better performance."
+      priority: INFO
+
+  - id: KE-006
+    name: "DH Group 19-21 (ECDH)"
+    condition:
+      dh_group_range: [19, 21]
+    severity: INFO
+    penalty: 0
+    category: key_exchange
+    finding:
+      title: "Strong key exchange: ECDH"
+      description: "Elliptic curve Diffie-Hellman provides excellent security with efficient key generation."
+    recommendation:
+      title: "Continue using ECDH"
+      action: "ECDH groups provide strong security with optimal performance."
+      priority: INFO
+
+# ── Protocol Version Rules ──
+protocol_rules:
+  - id: PROTO-001
+    name: "IKEv1 detected"
+    condition:
+      ike_version: "IKEv1"
+    severity: HIGH
+    penalty: 25
+    category: protocol
+    finding:
+      title: "Legacy protocol: IKEv1"
+      description: "IKEv1 has known security weaknesses including identity protection issues, complexity vulnerabilities, and lack of built-in DoS protection."
+    recommendation:
+      title: "Migrate to IKEv2"
+      action: "IKEv2 provides improved security, simpler operation, built-in NAT-T, and DoS resistance via cookies."
+      priority: HIGH
+
+  - id: PROTO-002
+    name: "IKEv2 detected"
+    condition:
+      ike_version: "IKEv2"
+    severity: INFO
+    penalty: 0
+    category: protocol
+    finding:
+      title: "Current protocol: IKEv2"
+      description: "IKEv2 is the current standard with improved security features, EAP support, and MOBIKE."
+    recommendation:
+      title: "Continue using IKEv2"
+      action: "IKEv2 is the recommended protocol version."
+      priority: INFO
+
+# ── Configuration Rules ──
+configuration_rules:
+  - id: CFG-001
+    name: "PFS not detected"
+    condition:
+      pfs_detected: false
+    severity: HIGH
+    penalty: 20
+    category: configuration
+    finding:
+      title: "Missing Perfect Forward Secrecy"
+      description: "Without PFS, compromise of long-term keys allows decryption of all past sessions. Each session should use unique ephemeral keys."
+    recommendation:
+      title: "Enable PFS"
+      action: "Enable PFS with DH Group 14 or ECDH groups for child SAs."
+      priority: HIGH
+
+  - id: CFG-002
+    name: "PFS detected"
+    condition:
+      pfs_detected: true
+    severity: INFO
+    penalty: 0
+    category: configuration
+    finding:
+      title: "PFS enabled"
+      description: "Perfect Forward Secrecy ensures each session uses unique keys, protecting past sessions from future key compromise."
+    recommendation:
+      title: "Continue using PFS"
+      action: "PFS is correctly configured."
+      priority: INFO
+
+  - id: CFG-003
+    name: "Replay protection not detected"
+    condition:
+      replay_protection: false
+    severity: HIGH
+    penalty: 15
+    category: configuration
+    finding:
+      title: "Missing anti-replay protection"
+      description: "Without anti-replay, an attacker can capture and retransmit packets to disrupt communication or cause duplicate processing."
+    recommendation:
+      title: "Enable anti-replay protection"
+      action: "Enable the anti-replay window on both sides of the VPN tunnel."
+      priority: HIGH
+
+  - id: CFG-004
+    name: "Replay protection enabled"
+    condition:
+      replay_protection: true
+    severity: INFO
+    penalty: 0
+    category: configuration
+    finding:
+      title: "Anti-replay protection enabled"
+      description: "Anti-replay protection prevents packet replay attacks using sequence number validation."
+    recommendation:
+      title: "Continue using anti-replay"
+      action: "Anti-replay protection is correctly configured."
+      priority: INFO

@@ -1,0 +1,100 @@
+{
+  "capture_id": "550e8400-e29b-41d4-a716-446655440000",
+  "analysis_id": "660e8400-e29b-41d4-a716-446655440001",
+  "timestamp": "2026-09-01T10:30:00Z",
+  "status": "completed",
+  "classification": {
+    "protocol": "IPsec",
+    "protocol_confidence": 0.98,
+    "ike_version": "IKEv2",
+    "ipsec_mode": "tunnel",
+    "sub_protocols": ["IKE", "ESP"]
+  },
+  "crypto_analysis": {
+    "encryption": {
+      "algorithm": "AES-256-GCM",
+      "key_length": 256,
+      "strength": "strong"
+    },
+    "authentication": {
+      "algorithm": "SHA-256",
+      "hmac_length": 256,
+      "strength": "strong"
+    },
+    "dh_group": {
+      "group_number": 14,
+      "name": "modp2048",
+      "strength": "acceptable"
+    },
+    "pfs": {
+      "detected": true,
+      "group": 14
+    }
+  },
+  "security_assessment": {
+    "risk_score": 18,
+    "severity": "LOW",
+    "crypto_strength_score": 92,
+    "findings": [
+      {
+        "id": "ENC-004",
+        "category": "encryption",
+        "severity": "INFO",
+        "title": "Strong encryption: AES-256",
+        "description": "AES-256 provides excellent confidentiality with a strong security margin.",
+        "evidence": {"field": "encryption", "value": "AES-256-GCM"},
+        "recommendation": "Continue using AES-256"
+      },
+      {
+        "id": "AUTH-003",
+        "category": "authentication",
+        "severity": "INFO",
+        "title": "Strong authentication: SHA-256",
+        "description": "SHA-256 provides robust integrity protection with no known practical attacks.",
+        "evidence": {"field": "authentication", "value": "SHA-256"},
+        "recommendation": "Continue using SHA-256"
+      },
+      {
+        "id": "KE-004",
+        "category": "key_exchange",
+        "severity": "INFO",
+        "title": "Acceptable key exchange: DH Group 14",
+        "description": "2048-bit MODP meets NIST minimum recommendations through 2030.",
+        "evidence": {"field": "dh_group", "value": 14},
+        "recommendation": "Consider ECDH groups for better performance"
+      },
+      {
+        "id": "CFG-002",
+        "category": "configuration",
+        "severity": "INFO",
+        "title": "PFS enabled",
+        "description": "Perfect Forward Secrecy ensures each session uses unique keys.",
+        "evidence": {"field": "pfs", "value": true},
+        "recommendation": "Continue using PFS"
+      }
+    ],
+    "recommendations": [
+      {
+        "id": "R001",
+        "priority": "LOW",
+        "category": "key_exchange",
+        "title": "Consider ECDH groups",
+        "description": "DH Group 14 is acceptable but ECDH groups offer better performance.",
+        "action": "Consider migrating to DH Group 19 or 20 (ECDH)"
+      }
+    ]
+  },
+  "confidence": {
+    "overall_score": 0.94,
+    "classification_confidence": 0.98,
+    "extraction_completeness": 0.85,
+    "model_version": "rules-v1"
+  },
+  "metadata": {
+    "processing_time_ms": 1250,
+    "packets_analyzed": 156,
+    "ipsec_packets": 142,
+    "capture_duration_seconds": 45.2,
+    "file_size_bytes": 28672
+  }
+}

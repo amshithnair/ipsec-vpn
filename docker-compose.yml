@@ -1,0 +1,131 @@
+version: "3.8"
+
+services:
+  # ════════════════════════════════════════
+  # PostgreSQL 16
+  # ════════════════════════════════════════
+  postgres:
+    image: postgres:16-alpine
+    container_name: ipsecvpn-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ipsecvpn-net
+
+  # ════════════════════════════════════════
+  # Redis 7
+  # ════════════════════════════════════════
+  redis:
+    image: redis:7-alpine
+    container_name: ipsecvpn-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ipsecvpn-net
+
+  # ════════════════════════════════════════
+  # Python AI Service (FastAPI)
+  # ════════════════════════════════════════
+  ai-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/ai-service.Dockerfile
+    container_name: ipsecvpn-ai-service
+    ports:
+      - "8000:8000"
+    environment:
+      RULES_PATH: /app/rules/security-rules.yaml
+      MODEL_PATH: /app/models
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./rules:/app/rules:ro
+      - ./data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - ipsecvpn-net
+
+  # ════════════════════════════════════════
+  # Go Backend (Gin)
+  # ════════════════════════════════════════
+  backend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend.Dockerfile
+    container_name: ipsecvpn-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      AI_SERVICE_URL: http://ai-service:8000
+      UPLOAD_DIR: /app/uploads
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE}
+      GIN_MODE: ${GIN_MODE}
+      PORT: "8080"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./data:/app/data:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - ipsecvpn-net
+
+  # ════════════════════════════════════════
+  # Frontend (React/Vite)
+  # ════════════════════════════════════════
+  frontend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/frontend.Dockerfile
+    container_name: ipsecvpn-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ipsecvpn-net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ipsecvpn-net:
+    driver: bridge

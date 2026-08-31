@@ -1,0 +1,73 @@
+# =========================
+# IPSEC-VPN Monorepo .gitignore
+# =========================
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Go
+apps/backend/bin/
+apps/backend/tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+apps/ai-service/venv/
+apps/ai-service/.venv/
+apps/ai-service/env/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Node / React
+apps/frontend/node_modules/
+apps/frontend/dist/
+apps/frontend/.next/
+apps/frontend/build/
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Data (keep structure, ignore large files)
+data/pcaps/*.pcap
+data/pcaps/*.pcapng
+data/reports/*.html
+data/reports/*.pdf
+!data/pcaps/.gitkeep
+!data/reports/.gitkeep
+
+# Uploads
+uploads/
+
+# Test artifacts
+*.log
+coverage/
+htmlcov/
+.coverage
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
