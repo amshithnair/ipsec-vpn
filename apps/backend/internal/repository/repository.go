@@ -161,28 +161,47 @@ func (r *Repository) UpdateJobFailed(ctx context.Context, id, errMsg string) err
 // ── Classification Results ──
 
 func (r *Repository) CreateClassification(ctx context.Context, cr *models.ClassificationResult) error {
-	query := `INSERT INTO classification_results (id, capture_id, protocol_detected, ike_version, ipsec_mode, encryption_algo, auth_algo, dh_group, pfs_detected, replay_protection, sa_lifetime, raw_features, confidence_score, model_version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+	query := `INSERT INTO classification_results (id, capture_id, protocol_detected, ike_version, ipsec_mode, encryption_algo, auth_algo, dh_group, pfs_detected, replay_protection, sa_lifetime, raw_features, confidence_score, model_version, analysis_method, traffic_inference)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		RETURNING created_at`
+	
+	// Convert TrafficInference to JSONB
+	var trafficInferenceJSON []byte
+	if cr.TrafficInference != nil {
+		trafficInferenceJSON, _ = json.Marshal(cr.TrafficInference)
+	}
+
 	return r.db.QueryRow(ctx, query,
 		cr.ID, cr.CaptureID, cr.ProtocolDetected, cr.IKEVersion, cr.IPSecMode,
 		cr.EncryptionAlgo, cr.AuthAlgo, cr.DHGroup, cr.PFSDetected, cr.ReplayProtection,
 		cr.SALifetime, cr.RawFeatures, cr.ConfidenceScore, cr.ModelVersion,
+		cr.AnalysisMethod, trafficInferenceJSON,
 	).Scan(&cr.CreatedAt)
 }
 
 func (r *Repository) GetClassificationByCaptureID(ctx context.Context, captureID string) (*models.ClassificationResult, error) {
 	cr := &models.ClassificationResult{}
-	query := `SELECT id, capture_id, protocol_detected, ike_version, ipsec_mode, encryption_algo, auth_algo, dh_group, pfs_detected, replay_protection, sa_lifetime, raw_features, confidence_score, model_version, created_at
+	query := `SELECT id, capture_id, protocol_detected, ike_version, ipsec_mode, encryption_algo, auth_algo, dh_group, pfs_detected, replay_protection, sa_lifetime, raw_features, confidence_score, model_version, analysis_method, traffic_inference, created_at
 		FROM classification_results WHERE capture_id = $1 ORDER BY created_at DESC LIMIT 1`
+	
+	var trafficInferenceJSON []byte
 	err := r.db.QueryRow(ctx, query, captureID).Scan(
 		&cr.ID, &cr.CaptureID, &cr.ProtocolDetected, &cr.IKEVersion, &cr.IPSecMode,
 		&cr.EncryptionAlgo, &cr.AuthAlgo, &cr.DHGroup, &cr.PFSDetected, &cr.ReplayProtection,
-		&cr.SALifetime, &cr.RawFeatures, &cr.ConfidenceScore, &cr.ModelVersion, &cr.CreatedAt,
+		&cr.SALifetime, &cr.RawFeatures, &cr.ConfidenceScore, &cr.ModelVersion,
+		&cr.AnalysisMethod, &trafficInferenceJSON, &cr.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
+	
+	if len(trafficInferenceJSON) > 0 && string(trafficInferenceJSON) != "null" {
+		var ti models.TrafficInference
+		if err := json.Unmarshal(trafficInferenceJSON, &ti); err == nil {
+			cr.TrafficInference = &ti
+		}
+	}
+	
 	return cr, nil
 }
 
@@ -331,13 +350,19 @@ func (r *Repository) GetFullAnalysisResult(ctx context.Context, captureID string
 		return nil, err
 	}
 
+	// Get capture
+	cap, err := r.GetCapture(ctx, captureID)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build combined result
 	result := map[string]interface{}{
-		"capture_id": captureID,
+		"capture": cap,
 		"classification": map[string]interface{}{
-			"protocol_detected": cr.ProtocolDetected,
+			"protocol":          cr.ProtocolDetected,
 			"ike_version":       cr.IKEVersion,
-			"ipsec_mode":        cr.IPSecMode,
+			"mode":              cr.IPSecMode,
 			"encryption_algo":   cr.EncryptionAlgo,
 			"auth_algo":         cr.AuthAlgo,
 			"dh_group":          cr.DHGroup,
@@ -345,8 +370,9 @@ func (r *Repository) GetFullAnalysisResult(ctx context.Context, captureID string
 			"replay_protection": cr.ReplayProtection,
 			"confidence_score":  cr.ConfidenceScore,
 			"model_version":     cr.ModelVersion,
+			"sa_lifetime_seconds": cr.SALifetime,
 		},
-		"security_assessment": map[string]interface{}{
+		"security": map[string]interface{}{
 			"risk_score":      sa.RiskScore,
 			"severity":        sa.Severity,
 			"crypto_strength": sa.CryptoStrength,
@@ -361,8 +387,8 @@ func (r *Repository) GetFullAnalysisResult(ctx context.Context, captureID string
 	if sa.Recommendations != nil {
 		recommendations = sa.Recommendations
 	}
-	result["security_assessment"].(map[string]interface{})["findings"] = json.RawMessage(findings)
-	result["security_assessment"].(map[string]interface{})["recommendations"] = json.RawMessage(recommendations)
+	result["security"].(map[string]interface{})["findings"] = json.RawMessage(findings)
+	result["security"].(map[string]interface{})["recommendations"] = json.RawMessage(recommendations)
 
 	// Parse raw features
 	if cr.RawFeatures != nil {

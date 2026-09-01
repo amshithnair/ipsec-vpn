@@ -6,6 +6,11 @@ Maps raw parser output to the classification contract.
 from __future__ import annotations
 
 from app.parser.pcap_parser import ParseResult, DH_GROUPS
+from app.parser.features import extract_flow_features
+import joblib
+import pandas as pd
+import os
+
 from app.models.schemas import (
     ClassificationResult,
     CryptoAnalysis,
@@ -13,7 +18,21 @@ from app.models.schemas import (
     AuthenticationInfo,
     DHGroupInfo,
     PFSInfo,
+    TrafficInference,
 )
+
+# Load ML Model globally
+MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models")
+TRAFFIC_MODEL_FILE = os.path.join(MODEL_PATH, "v1", "model.joblib")
+_rf_model = None
+try:
+    if os.path.exists(TRAFFIC_MODEL_FILE):
+        _rf_model = joblib.load(TRAFFIC_MODEL_FILE)
+        print(f"[ML] Successfully loaded model from {TRAFFIC_MODEL_FILE}")
+    else:
+        print(f"[ML] Model file not found: {TRAFFIC_MODEL_FILE}")
+except Exception as e:
+    print(f"[ML] Warning: Failed to load traffic ML model: {e}")
 
 
 # ── Strength Assessment Lookups ──
@@ -217,6 +236,7 @@ def _calculate_confidence(parse_result: ParseResult) -> tuple[float, float, floa
 def classify(parse_result: ParseResult) -> tuple[ClassificationResult, CryptoAnalysis, float, float, float]:
     """
     Classify the parsed PCAP data into protocol details.
+    Uses a hybrid approach: Deterministic classification for IPsec, and ML for Traffic Inference.
 
     Returns:
         Tuple of (ClassificationResult, CryptoAnalysis,
@@ -231,8 +251,41 @@ def classify(parse_result: ParseResult) -> tuple[ClassificationResult, CryptoAna
     if parse_result.has_ah:
         sub_protocols.append("AH")
 
-    # Confidence scores
+    # Confidence scores (Deterministic)
     class_conf, extract_comp, overall_conf = _calculate_confidence(parse_result)
+    
+    # ML Traffic Inference
+    traffic_inference = None
+    analysis_method = "Deterministic"
+    
+    print(f"[ML] classify() called. _rf_model loaded: {_rf_model is not None}, total_packets: {parse_result.stats.total_packets}")
+    
+    if _rf_model is not None and parse_result.stats.total_packets > 0:
+        try:
+            features_dict = extract_flow_features(parse_result)
+            if features_dict:
+                df = pd.DataFrame([features_dict])
+                
+                # Predict probabilities
+                probs = _rf_model.predict_proba(df)[0]
+                max_prob = max(probs)
+                class_idx = list(probs).index(max_prob)
+                pred_class = _rf_model.classes_[class_idx]
+                
+                if max_prob < 0.60:
+                    pred_class = "Unknown"
+                    
+                traffic_inference = TrafficInference(
+                    traffic_type=str(pred_class),
+                    confidence=float(max_prob),
+                    model_version="rf-v1.0.0"
+                )
+                analysis_method = "Hybrid (ML + Deterministic)"
+        except Exception as e:
+            import traceback
+            import sys
+            print(f"ML Inference failed: {e}", file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
 
     classification = ClassificationResult(
         protocol="IPsec" if parse_result.has_ipsec else "Non-IPsec",
@@ -240,6 +293,8 @@ def classify(parse_result: ParseResult) -> tuple[ClassificationResult, CryptoAna
         ike_version=parse_result.ike_info.version,
         ipsec_mode=_determine_mode(parse_result),
         sub_protocols=sub_protocols,
+        analysis_method=analysis_method,
+        traffic_inference=traffic_inference,
     )
 
     crypto = CryptoAnalysis(

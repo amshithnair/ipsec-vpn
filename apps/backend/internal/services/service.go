@@ -203,6 +203,17 @@ func (s *Service) runAnalysis(captureID, jobID, storagePath, filename string) {
 		}
 	}
 
+	var trafficInference *models.TrafficInference
+	if ti, ok := classification["traffic_inference"].(map[string]interface{}); ok {
+		trafficInference = &models.TrafficInference{
+			TrafficType:  getStringValue(ti, "traffic_type"),
+			ModelVersion: getStringValue(ti, "model_version"),
+		}
+		if conf, ok := ti["confidence"].(float64); ok {
+			trafficInference.Confidence = conf
+		}
+	}
+
 	cr := &models.ClassificationResult{
 		ID:               classID,
 		CaptureID:        captureID,
@@ -216,6 +227,8 @@ func (s *Service) runAnalysis(captureID, jobID, storagePath, filename string) {
 		RawFeatures:      rawFeatures,
 		ConfidenceScore:  confidenceScore,
 		ModelVersion:     modelVersion,
+		AnalysisMethod:   getStringValue(classification, "analysis_method"),
+		TrafficInference: trafficInference,
 	}
 
 	if err := s.repo.CreateClassification(ctx, cr); err != nil {

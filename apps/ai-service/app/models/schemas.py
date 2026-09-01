@@ -33,12 +33,20 @@ class PFSInfo(BaseModel):
     group: Optional[int] = None
 
 
+class TrafficInference(BaseModel):
+    traffic_type: str = "Unknown"
+    confidence: float = 0.0
+    model_version: str = "rf-v1.0.0"
+
+
 class ClassificationResult(BaseModel):
     protocol: str = "Unknown"
     protocol_confidence: float = 0.0
     ike_version: Optional[str] = None
     ipsec_mode: Optional[str] = None
     sub_protocols: list[str] = Field(default_factory=list)
+    analysis_method: str = "Deterministic"  # Deterministic or ML
+    traffic_inference: Optional[TrafficInference] = None
 
 
 class CryptoAnalysis(BaseModel):

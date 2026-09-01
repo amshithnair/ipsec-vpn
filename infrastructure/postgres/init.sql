@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS classification_results (
     raw_features      JSONB DEFAULT '{}',
     confidence_score  DECIMAL(5,4) DEFAULT 0,
     model_version     VARCHAR(50) DEFAULT 'rules-v1',
+    analysis_method   VARCHAR(50) DEFAULT 'Deterministic',
+    traffic_inference JSONB DEFAULT NULL,
     created_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

@@ -1,102 +1,102 @@
-<div align="center">
-  <img src="https://img.shields.io/badge/Security-IPsec-blue?style=for-the-badge&logo=security" alt="IPsec Security" />
-  <img src="https://img.shields.io/badge/AI-Powered-orange?style=for-the-badge&logo=artificial-intelligence" alt="AI Powered" />
-  <img src="https://img.shields.io/badge/Go-1.23-00ADD8?style=for-the-badge&logo=go" alt="Go" />
-  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python" alt="Python" />
-</div>
+# IPsec/IKE VPN Analysis Tool
 
-<br />
+An intelligent, full-stack packet analysis system designed to ingest, classify, and cryptographically assess IPsec and IKE traffic (PCAP/PCAPNG).
 
-<div align="center">
-  <h1>🛡️ IPSEC-VPN Protocol Analyzer</h1>
-  <p><strong>Next-Generation AI-Powered IPsec Security Assessment Platform</strong></p>
-</div>
+## Architecture
 
-<hr />
+This project is structured as a monorepo containing three core microservices:
 
-## 🌟 Overview
-
-The **IPSEC-VPN Protocol Analyzer** is an automated, high-performance platform designed to ingest raw network traffic (PCAPs), dissect complex IPsec/IKE negotiations, and evaluate cryptographic strength against modern security standards.
-
-Instead of manually digging through Wireshark to find whether Perfect Forward Secrecy (PFS) was used or if a weak Diffie-Hellman group was negotiated, this platform automates the entire process and provides a clear, actionable HTML security report.
-
-## 🚀 Key Features
-
-- **🧠 Intelligent Protocol Dissection**: Uses Scapy with custom IKE payload parsing to extract exact encryption algorithms, authentication hashes, DH groups, and PFS state.
-- **⚡ High-Performance Architecture**: 
-  - **Go Backend**: Handles high-concurrency uploads, asynchronous job orchestration, and REST API routing.
-  - **Python AI Service**: Stateless, compute-heavy engine that performs the deep packet inspection and classification.
-- **🛡️ Deterministic Rules Engine**: Evaluates cryptographic strength based on NIST guidelines. Instantly flags weak algorithms like 3DES, MD5, and DH Group 2.
-- **📊 Professional HTML Reports**: Automatically generates stunning, shareable technical security reports with risk scoring, findings, and evidence.
-- **🐳 Fully Dockerized**: Spin up the entire stack (Go, Python, Postgres, Redis) with a single command.
-
-## 🏗️ Architecture
-
-The system operates as a monorepo containing distinct, decoupled services:
-
-```mermaid
-graph LR
-    Client[Frontend / API Client] -->|REST API| Go[Go Backend API]
-    Go -->|Read/Write| PG[(PostgreSQL)]
-    Go -->|Cache| Redis[(Redis)]
-    Go -->|Internal HTTP| AI[Python AI Service]
-    
-    subgraph AI Service
-        Parser[PCAP Parser] --> Classifier[Protocol Classifier]
-        Classifier --> Rules[Rules Engine]
-        Rules --> Report[HTML Generator]
-    end
-```
-
-## 🛠️ Tech Stack
-
-- **Backend**: Go (Gin, pgx)
-- **AI/Analysis Engine**: Python (FastAPI, Scapy, Pydantic)
-- **Database**: PostgreSQL 16
-- **Cache**: Redis 7
-- **Orchestration**: Docker & Docker Compose
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Docker and Docker Compose
-- Go 1.23+ (for local development)
-- Python 3.11+ (for local development)
-
-### Quick Start
-
-1. **Clone the repository**
-2. **Start the stack**
-   ```bash
-   docker-compose up -d --build
-   ```
-3. **Check the services**
-   - Go Backend: `http://localhost:8080/api/v1/health`
-   - Python AI Service: `http://localhost:8000/health`
-   - PostgreSQL: `localhost:5432`
-   - Redis: `localhost:6379`
-
-## 🧪 Testing
-
-We provide a comprehensive PowerShell test suite that automatically generates demo PCAPs and tests the entire API lifecycle.
-
-1. **Generate Demo PCAPs and Run Tests**
-   ```powershell
-   # Run the full API E2E test suite
-   .\scripts\test-api.ps1
-   
-   # Run the isolated AI service test suite
-   .\scripts\test-ai-service.ps1
-   ```
-
-The test suites will validate uploads, async analysis orchestration, risk scoring accuracy (contrasting strong vs weak PCAPs), and report generation.
-
-## 📂 Documentation
-
-- [API Documentation](./docs/api-docs.md)
-- [Architecture & Engineering Decisions (ADR)](./docs/engineering-decisions.md)
+1. **Frontend (`apps/frontend/`)**
+   - React + Vite SPA using TypeScript.
+   - Provides an intuitive UI for uploading PCAPs, viewing deterministic analysis, and exporting compliance reports.
+2. **Backend (`apps/backend/`)**
+   - Go (Gin) API server.
+   - Handles file storage, coordinates jobs, stores analysis results in Postgres, and caches in Redis.
+3. **AI Service (`apps/ai-service/`)**
+   - Python FastAPI service.
+   - Uses `scapy` for packet parsing and runs the deterministic cryptographic analysis model.
 
 ---
-<div align="center">
-  <i>Built with 🛡️ for network security engineers.</i>
-</div>
+
+## Getting Started
+
+### Prerequisites
+
+- **Docker and Docker Compose**: Ensure Docker is installed and running on your system.
+- **Node.js (v18+)**: Required if you want to run the frontend locally outside of Docker.
+- **Go (1.21+)**: Required if you want to run the backend locally outside of Docker.
+
+### Running the Full Stack (Docker)
+
+The easiest way to start the entire application (Frontend, Go Backend, Python AI Service, Postgres, and Redis) is via Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
+**Services will be available at:**
+- **Frontend UI**: `http://localhost:3000`
+- **Go Backend API**: `http://localhost:8080/api/v1/health`
+- **Python AI Service**: `http://localhost:8000/health`
+- **PostgreSQL**: `localhost:5432`
+- **Redis**: `localhost:6379`
+
+### Local Development (Without Docker for Frontend)
+
+If you prefer to run the frontend locally for development (with hot-reloading), while keeping the backend services in Docker:
+
+1. Start the backend services:
+   ```bash
+   docker-compose up backend ai-service db redis
+   ```
+2. Open a new terminal and navigate to the frontend directory:
+   ```bash
+   cd apps/frontend
+   ```
+3. Install dependencies and start the Vite dev server:
+   ```bash
+   npm install
+   npm run dev
+   ```
+   The frontend will be available at `http://localhost:3000` and will proxy API requests to `http://localhost:8080`.
+
+---
+
+## Testing the System
+
+### E2E Flow
+
+1. Open `http://localhost:3000` in your browser.
+2. Click **Upload PCAP**.
+3. Select a `.pcap` or `.pcapng` file containing IPsec/IKE traffic. (You can generate one using `tcpdump` or Wireshark, or use a sample IPsec PCAP).
+4. Wait for the upload and analysis to complete.
+5. Review the **Security Assessment** and **Technical Details**.
+6. Generate and download the **Technical Report**.
+
+### Test Scripts
+
+The `scripts/` directory contains tools for generating PCAPs and testing the backend API directly:
+
+- **Generate Sample PCAPs (`scripts/generate_pcaps.py`)**:
+  Generates synthetic strong and weak IPsec PCAP files for testing the AI service's deterministic ruleset.
+  ```bash
+  cd scripts
+  python3 -m venv venv
+  source venv/bin/activate  # On Windows: venv\Scripts\activate
+  pip install -r requirements.txt
+  python generate_pcaps.py
+  ```
+
+- **E2E API Test (`scripts/test_e2e.py`)**:
+  Uploads a PCAP to the Go backend API, polls for completion, and prints the full analysis result.
+  ```bash
+  python test_e2e.py ../tests/fixtures/strong_ipsec.pcap
+  ```
+
+---
+
+## Design & Implementation Details
+
+- **Deterministic Analysis**: The Python AI service does not use LLMs to guess protocols. It uses a strictly deterministic ruleset against `scapy` packet fields to classify IKE versions, encryption algorithms, and security postures against NIST guidelines.
+- **Frontend Design System**: The frontend uses a custom, CSS-variable-based design system (`apps/frontend/src/index.css`) for consistent typography, colors, and layout components without relying on heavy UI libraries.
+- **Data Contracts**: The TypeScript interfaces in `apps/frontend/src/types/index.ts` strictly mirror the JSON models defined in `apps/backend/internal/models/models.go`.

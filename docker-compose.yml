@@ -106,21 +106,6 @@ services:
     networks:
       - ipsecvpn-net
 
-  # ════════════════════════════════════════
-  # Frontend (React/Vite)
-  # ════════════════════════════════════════
-  frontend:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/frontend.Dockerfile
-    container_name: ipsecvpn-frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - ipsecvpn-net
 
 volumes:
   postgres_data:

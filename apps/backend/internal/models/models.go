@@ -37,23 +37,31 @@ type AnalysisJob struct {
 	CreatedAt    time.Time       `json:"created_at"`
 }
 
+type TrafficInference struct {
+	TrafficType  string  `json:"traffic_type"`
+	Confidence   float64 `json:"confidence"`
+	ModelVersion string  `json:"model_version"`
+}
+
 // ClassificationResult stores protocol classification.
 type ClassificationResult struct {
-	ID               string          `json:"id"`
-	CaptureID        string          `json:"capture_id"`
-	ProtocolDetected string          `json:"protocol_detected"`
-	IKEVersion       *string         `json:"ike_version,omitempty"`
-	IPSecMode        *string         `json:"ipsec_mode,omitempty"`
-	EncryptionAlgo   *string         `json:"encryption_algo,omitempty"`
-	AuthAlgo         *string         `json:"auth_algo,omitempty"`
-	DHGroup          *int            `json:"dh_group,omitempty"`
-	PFSDetected      *bool           `json:"pfs_detected,omitempty"`
-	ReplayProtection *bool           `json:"replay_protection,omitempty"`
-	SALifetime       *int            `json:"sa_lifetime,omitempty"`
-	RawFeatures      json.RawMessage `json:"raw_features"`
-	ConfidenceScore  float64         `json:"confidence_score"`
-	ModelVersion     string          `json:"model_version"`
-	CreatedAt        time.Time       `json:"created_at"`
+	ID               string           `json:"id"`
+	CaptureID        string           `json:"capture_id"`
+	ProtocolDetected string           `json:"protocol_detected"`
+	IKEVersion       *string          `json:"ike_version,omitempty"`
+	IPSecMode        *string          `json:"ipsec_mode,omitempty"`
+	EncryptionAlgo   *string          `json:"encryption_algo,omitempty"`
+	AuthAlgo         *string          `json:"auth_algo,omitempty"`
+	DHGroup          *int             `json:"dh_group,omitempty"`
+	PFSDetected      *bool            `json:"pfs_detected,omitempty"`
+	ReplayProtection *bool            `json:"replay_protection,omitempty"`
+	SALifetime       *int             `json:"sa_lifetime,omitempty"`
+	RawFeatures      json.RawMessage  `json:"raw_features"`
+	ConfidenceScore  float64          `json:"confidence_score"`
+	ModelVersion     string           `json:"model_version"`
+	AnalysisMethod   string           `json:"analysis_method,omitempty"`
+	TrafficInference *TrafficInference `json:"traffic_inference,omitempty"`
+	CreatedAt        time.Time        `json:"created_at"`
 }
 
 // SecurityAssessment stores security evaluation results.
