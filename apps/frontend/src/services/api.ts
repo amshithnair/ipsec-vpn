@@ -6,6 +6,8 @@
 import type {
   DashboardSummary,
   CaptureListItem,
+  Capture,
+  Classification,
   UploadResponse,
   AnalysisStatus,
   FullAnalysis,
@@ -114,10 +116,60 @@ const mapSecurityData = (securityData: any) => {
 
 export async function fetchAnalysisResults(captureId: string): Promise<FullAnalysis> {
   const result: any = await request(`/analysis/results/${captureId}`);
-  if (result.security) {
-    result.security = mapSecurityData(result.security);
+
+  let captureObj: any = null;
+  try {
+    captureObj = await request(`/captures/${captureId}`);
+  } catch {
+    // Graceful fallback if capture meta not directly queryable
   }
-  return result as FullAnalysis;
+
+  const rawCls = result.classification || {};
+  const rawCrypto = result.crypto_analysis || {};
+  const rawMeta = result.metadata || {};
+  const rawSecurity = result.security_assessment || result.security || {};
+
+  const mappedSecurity = mapSecurityData(rawSecurity) || {
+    risk_score: 0,
+    severity: 'LOW',
+    crypto_strength_score: 100,
+    findings: [],
+    recommendations: [],
+    method_source: 'HYBRID_RISK',
+  };
+
+  const fullCapture: Capture = {
+    id: captureId,
+    filename: captureObj?.filename || rawMeta.filename || `${captureId.substring(0, 8)}.pcap`,
+    file_size: captureObj?.file_size || rawMeta.file_size_bytes,
+    status: captureObj?.status || result.status || 'analyzed',
+    created_at: captureObj?.created_at || result.timestamp || new Date().toISOString(),
+    packet_count: captureObj?.packet_count || rawMeta.packets_analyzed || rawMeta.ipsec_packets,
+    duration_seconds: captureObj?.duration_seconds || rawMeta.capture_duration_seconds,
+  };
+
+  const fullClassification: Classification = {
+    protocol: rawCls.protocol || 'IPsec',
+    protocol_confidence: rawCls.protocol_confidence ?? result.confidence?.classification_confidence ?? 0.9,
+    ike_version: rawCls.ike_version || null,
+    mode: rawCls.ipsec_mode || rawCls.mode || 'tunnel',
+    encryption_algo: rawCrypto.encryption?.algorithm || rawCls.encryption_algo || 'Unknown',
+    auth_algo: rawCrypto.authentication?.algorithm || rawCls.auth_algo || 'Unknown',
+    dh_group: rawCrypto.dh_group?.group_number || rawCls.dh_group || null,
+    pfs_detected: rawCrypto.pfs?.detected ?? rawCls.pfs_detected ?? null,
+    replay_protection: rawCls.replay_protection ?? null,
+    sa_lifetime_seconds: rawCls.sa_lifetime_seconds || null,
+    confidence_score: result.confidence?.overall_score ?? rawCls.confidence_score ?? 0.85,
+    traffic_inference: rawCls.traffic_inference || null,
+    method_source: rawCls.method_source || 'DETERMINISTIC',
+  };
+
+  return {
+    capture: fullCapture,
+    classification: fullClassification,
+    security: mappedSecurity,
+    anomaly_assessment: result.anomaly_assessment || null,
+  };
 }
 
 // ── Classification ─────────────────────────────────────────
@@ -170,37 +222,41 @@ export async function fetchDemoScenarios(): Promise<DemoScenario[]> {
 
 // ── Technical ──────────────────────────────────────────────
 export async function fetchTechnicalDetails(captureId: string): Promise<TechnicalDetails> {
-  const result: any = await request(`/analysis/results/${captureId}`);
-  const raw = result.classification?.raw_features || {};
-  const cls = raw.classification || {};
-  const crypto = raw.crypto_analysis || {};
+  const full = await fetchAnalysisResults(captureId);
 
   return {
-    capture: result.capture,
+    capture: full.capture,
     ike: {
-      version: cls.ike_version || null,
+      version: full.classification.ike_version || null,
       exchange_type: null,
-      dh_group: crypto.dh_group?.group_number || null,
+      dh_group: full.classification.dh_group || null,
       nonce_length: null,
       initiator_identity: null,
+      responder_identity: null,
       proposals: [
         {
-          encryption: crypto.encryption?.algorithm || 'Unknown',
-          auth: crypto.authentication?.algorithm || 'Unknown',
-          dh_group: crypto.dh_group?.group_number || 0
-        }
-      ]
+          encryption: full.classification.encryption_algo || 'Unknown',
+          auth: full.classification.auth_algo || 'Unknown',
+          dh_group: full.classification.dh_group || 0,
+        },
+      ],
     },
     esp_ah: {
-      protocol_used: cls.ipsec_mode || 'ESP',
+      protocol_used: (full.classification.mode as any) || 'ESP',
       spi: null,
       sequence_numbers: null,
       icv_length: null,
       padding_detected: null,
-      next_header: null
+      next_header: null,
     },
-    flow_stats: null,
-    raw_features: raw
+    flow_stats: full.capture.duration_seconds
+      ? {
+          flow_duration_seconds: full.capture.duration_seconds,
+          byte_volume: full.capture.file_size,
+          packet_size_avg: full.capture.file_size && full.capture.packet_count ? full.capture.file_size / full.capture.packet_count : null,
+        }
+      : null,
+    raw_features: null,
   };
 }
 
@@ -216,3 +272,4 @@ export async function fetchReport(id: string): Promise<ReportMeta> {
 export function getReportDownloadUrl(id: string): string {
   return `${BASE}/reports/${id}/download`;
 }
+

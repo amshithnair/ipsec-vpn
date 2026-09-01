@@ -11,7 +11,7 @@ import {
 import { fetchAnalysisResults, fetchAnomalies, generateReport } from '@/services/api';
 import { SeverityBadge, SourceBadge } from '@/components/common/Badges';
 import { LoadingState, ErrorState } from '@/components/common/States';
-import type { FullAnalysis, AnomalyAssessment } from '@/types';
+import type { FullAnalysis, AnomalyAssessment, SecurityFinding, Recommendation } from '@/types';
 
 export function InvestigationWorkspacePage() {
   const { id } = useParams<{ id: string }>();
@@ -67,6 +67,8 @@ export function InvestigationWorkspacePage() {
 
   const { capture, classification, security } = analysis;
   const isAnomalous = anomaly?.is_anomalous || false;
+  const findings: SecurityFinding[] = security?.findings || [];
+  const recommendations: Recommendation[] = security?.recommendations || [];
 
   const getRiskColor = (score: number) => {
     if (score <= 25) return 'var(--sev-low-solid)';
@@ -84,15 +86,15 @@ export function InvestigationWorkspacePage() {
             <span style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'var(--bg-overlay)', borderRadius: 4, color: 'var(--text-muted)' }}>
               INVESTIGATION WORKSPACE
             </span>
-            <code style={{ fontSize: '0.875rem', color: 'var(--accent-primary)', fontWeight: 600 }}>{capture.filename}</code>
+            <code style={{ fontSize: '0.875rem', color: 'var(--accent-primary)', fontWeight: 600 }}>{capture?.filename || 'Capture File'}</code>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '6px 0 0 0' }}>
-            ID: <span style={{ fontFamily: 'monospace' }}>{capture.id}</span> · Packets: {capture.packet_count ?? '—'} · Captured: {new Date(capture.created_at).toLocaleString()}
+            ID: <span style={{ fontFamily: 'monospace' }}>{capture?.id || id}</span> · Packets: {capture?.packet_count ?? '—'} · Captured: {new Date(capture?.created_at || Date.now()).toLocaleString()}
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/compare?base=${capture.id}`)}>
+          <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/compare?base=${capture?.id || id}`)}>
             <GitCompare size={14} style={{ marginRight: 4 }} /> Compare Capture
           </button>
           <button className="btn btn-primary btn-sm" onClick={handleGenerateReport} disabled={reportGenerating}>
@@ -259,18 +261,18 @@ export function InvestigationWorkspacePage() {
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-3)' }}>
           <h3 style={{ fontSize: '1rem', margin: 0, fontWeight: 600 }}>
-            Security Findings & Deterministic Evidence ({security.findings.length})
+            Security Findings & Deterministic Evidence ({findings.length})
           </h3>
           <span style={{ fontSize: '0.813rem', color: 'var(--text-secondary)' }}>Traceable from observed packet bytes</span>
         </div>
 
-        {security.findings.length === 0 ? (
+        {findings.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', color: 'var(--sev-low-solid)', padding: 'var(--space-3)' }}>
             <CheckCircle2 size={20} /> No high-risk security findings detected.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            {security.findings.map((f) => (
+            {findings.map((f) => (
               <div key={f.id} className="card" style={{ background: 'var(--bg-elevated)', borderLeft: `4px solid var(--sev-${(f.severity || 'low').toLowerCase()}-solid)` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
                   <div style={{ fontWeight: 600, fontSize: '0.938rem' }}>{f.title}</div>
@@ -305,11 +307,11 @@ export function InvestigationWorkspacePage() {
           <h3 style={{ fontSize: '1rem', margin: 0, fontWeight: 600 }}>Actionable Remediation Guidance</h3>
         </div>
 
-        {security.recommendations.length === 0 ? (
+        {recommendations.length === 0 ? (
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No pending configuration actions.</p>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-3)' }}>
-            {security.recommendations.map((r) => (
+            {recommendations.map((r) => (
               <div key={r.id} className="card" style={{ background: 'var(--bg-elevated)', borderLeft: '4px solid var(--accent-primary)' }}>
                 <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 4 }}>{r.title}</div>
                 <div style={{ fontSize: '0.813rem', color: 'var(--text-secondary)' }}>{r.description}</div>
