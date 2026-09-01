@@ -10,6 +10,12 @@ import type {
   AnalysisStatus,
   FullAnalysis,
   SecurityAssessment,
+  AnomalyAssessment,
+  SecurityPostureSummary,
+  RemediationItem,
+  CaptureComparison,
+  ModelCard,
+  DemoScenario,
   TechnicalDetails,
   ReportMeta,
 } from '@/types';
@@ -33,6 +39,8 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
     analyzed: raw.total_analyses || 0,
     high_risk: raw.severity_counts?.['HIGH'] || 0,
     critical: raw.severity_counts?.['CRITICAL'] || 0,
+    anomalies_count: raw.anomalies_count || 0,
+    avg_crypto_score: raw.avg_crypto_score || 0,
     risk_distribution: {
       low: raw.severity_counts?.['LOW'] || 0,
       medium: raw.severity_counts?.['MEDIUM'] || 0,
@@ -42,10 +50,12 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
     recent_captures: (raw.recent_analyses || []).map((c: any) => ({
       id: c.capture_id,
       filename: c.filename,
-      protocol: 'IPsec', // Assumed for summary
+      protocol: 'IPsec',
       risk_score: c.risk_score,
       severity: c.severity,
-      status: 'completed', // If it's an analysis, it's completed
+      anomaly_score: c.anomaly_score,
+      is_anomalous: c.is_anomalous,
+      status: 'completed',
       created_at: c.created_at,
     }))
   };
@@ -61,14 +71,18 @@ export async function fetchCapture(id: string): Promise<CaptureListItem> {
   return request(`/captures/${id}`);
 }
 
-export async function uploadPcap(file: File): Promise<UploadResponse> {
-  const form = new FormData();
-  form.append('file', file);
-  return request('/captures/upload', { method: 'POST', body: form });
+export async function deleteCapture(id: string): Promise<void> {
+  return request(`/captures/${id}`, { method: 'DELETE' });
 }
 
-export async function deleteCapture(id: string): Promise<void> {
-  await fetch(`${BASE}/captures/${id}`, { method: 'DELETE' });
+// ── Upload ─────────────────────────────────────────────────
+export async function uploadPcap(file: File): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return request('/captures/upload', {
+    method: 'POST',
+    body: formData,
+  });
 }
 
 // ── Analysis ───────────────────────────────────────────────
@@ -84,14 +98,16 @@ const mapSecurityData = (securityData: any) => {
   if (!securityData) return securityData;
   return {
     ...securityData,
+    method_source: securityData.method_source || 'HYBRID_RISK',
     findings: (securityData.findings || []).map((f: any) => ({
       ...f,
-      explanation: f.description || f.explanation || 'No description provided.',
-      impact: f.impact || f.category || 'Security risk'
+      explanation: f.description || f.explanation || 'Observed cryptographic configuration item.',
+      impact: f.impact || f.category || 'Security risk',
+      source: f.source || 'RULE_BASED'
     })),
     recommendations: (securityData.recommendations || []).map((r: any) => ({
       ...r,
-      description: r.description || r.action || 'No description provided.'
+      description: r.description || r.action || 'Configuration hardening recommended.'
     }))
   };
 };
@@ -109,16 +125,52 @@ export async function fetchClassification(captureId: string) {
   return request(`/classification/${captureId}`);
 }
 
-// ── Security ───────────────────────────────────────────────
+// ── Security Assessment ────────────────────────────────────
 export async function fetchSecurityAssessment(captureId: string): Promise<SecurityAssessment> {
   const raw: any = await request(`/security/${captureId}`);
   return mapSecurityData(raw) as SecurityAssessment;
 }
 
+// ── Behavioral Anomalies ───────────────────────────────────
+export async function fetchAnomalies(captureId: string): Promise<AnomalyAssessment> {
+  return request(`/anomalies/${captureId}`);
+}
+
+// ── Security Posture ───────────────────────────────────────
+export async function fetchSecurityPosture(): Promise<SecurityPostureSummary> {
+  return request('/posture');
+}
+
+// ── Remediation Center ─────────────────────────────────────
+export async function fetchRemediations(): Promise<RemediationItem[]> {
+  const raw: any = await request('/remediation');
+  return raw.remediations || [];
+}
+
+// ── Capture Comparison ─────────────────────────────────────
+export async function fetchCaptureComparison(baseId: string, targetId: string): Promise<CaptureComparison> {
+  return request(`/compare?base=${encodeURIComponent(baseId)}&target=${encodeURIComponent(targetId)}`);
+}
+
+// ── Model Registry ─────────────────────────────────────────
+export async function fetchModels(): Promise<ModelCard[]> {
+  const raw: any = await request('/models');
+  return raw.models || [];
+}
+
+export async function fetchModelCard(modelId: string): Promise<ModelCard> {
+  return request(`/models/${modelId}`);
+}
+
+// ── Demo Lab ───────────────────────────────────────────────
+export async function fetchDemoScenarios(): Promise<DemoScenario[]> {
+  const raw: any = await request('/demo/scenarios');
+  return raw.scenarios || [];
+}
+
 // ── Technical ──────────────────────────────────────────────
 export async function fetchTechnicalDetails(captureId: string): Promise<TechnicalDetails> {
   const result: any = await request(`/analysis/results/${captureId}`);
-  // Map from raw_features to TechnicalDetails structure expected by the page
   const raw = result.classification?.raw_features || {};
   const cls = raw.classification || {};
   const crypto = raw.crypto_analysis || {};
@@ -157,10 +209,10 @@ export async function generateReport(captureId: string): Promise<ReportMeta> {
   return request(`/reports/generate/${captureId}`, { method: 'POST' });
 }
 
-export async function fetchReport(captureId: string): Promise<ReportMeta> {
-  return request(`/reports/${captureId}`);
+export async function fetchReport(id: string): Promise<ReportMeta> {
+  return request(`/reports/${id}`);
 }
 
-export function getReportDownloadUrl(captureId: string): string {
-  return `${BASE}/reports/${captureId}/download`;
+export function getReportDownloadUrl(id: string): string {
+  return `${BASE}/reports/${id}/download`;
 }

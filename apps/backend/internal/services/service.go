@@ -278,6 +278,76 @@ func (s *Service) runAnalysis(captureID, jobID, storagePath, filename string) {
 		return
 	}
 
+	// Store behavioral anomaly assessment if present
+	if anomMap, ok := result["anomaly_assessment"].(map[string]interface{}); ok {
+		anomScore := 0.0
+		if as, ok := anomMap["anomaly_score"].(float64); ok {
+			anomScore = as
+		}
+		isAnom := false
+		if ia, ok := anomMap["is_anomalous"].(bool); ok {
+			isAnom = ia
+		}
+		sev := "LOW"
+		if sv, ok := anomMap["severity"].(string); ok {
+			sev = sv
+		}
+		status := "EVALUATED"
+		if st, ok := anomMap["status"].(string); ok {
+			status = st
+		}
+		expl := getStringValue(anomMap, "explanation")
+		modVer := getStringValue(anomMap, "model_version")
+		algo := getStringValue(anomMap, "algorithm")
+		valStat := getStringValue(anomMap, "validation_status")
+		methSrc := getStringValue(anomMap, "method_source")
+		if methSrc == "" {
+			methSrc = "ML_ANOMALY"
+		}
+
+		var signals []models.ContributingSignal
+		if sigsRaw, ok := anomMap["contributing_signals"].([]interface{}); ok {
+			for _, sigItem := range sigsRaw {
+				if sm, ok := sigItem.(map[string]interface{}); ok {
+					var cs models.ContributingSignal
+					cs.FeatureName = getStringValue(sm, "feature_name")
+					if ov, ok := sm["observed_value"].(float64); ok {
+						cs.ObservedValue = ov
+					}
+					if bm, ok := sm["baseline_mean"].(float64); ok {
+						cs.BaselineMean = bm
+					}
+					if dz, ok := sm["deviation_z_score"].(float64); ok {
+						cs.DeviationZScore = dz
+					}
+					cs.Direction = getStringValue(sm, "direction")
+					if iw, ok := sm["impact_weight"].(float64); ok {
+						cs.ImpactWeight = iw
+					}
+					signals = append(signals, cs)
+				}
+			}
+		}
+
+		ar := &models.AnomalyResult{
+			ID:                  uuid.New().String(),
+			CaptureID:           captureID,
+			AnomalyScore:        anomScore,
+			IsAnomalous:         isAnom,
+			Severity:            sev,
+			Status:              status,
+			Explanation:         expl,
+			ContributingSignals: signals,
+			ModelVersion:        modVer,
+			Algorithm:           algo,
+			ValidationStatus:    valStat,
+			MethodSource:        methSrc,
+		}
+		if err := s.repo.CreateAnomalyResult(ctx, ar); err != nil {
+			log.Printf("[Analysis] Warning: Failed to store anomaly result: %v", err)
+		}
+	}
+
 	// Update capture metadata
 	if meta, ok := result["metadata"].(map[string]interface{}); ok {
 		packetCount := 0
@@ -488,6 +558,92 @@ func (s *Service) GetReport(ctx context.Context, id string) (*models.Report, err
 
 func (s *Service) GetReportByCaptureID(ctx context.Context, captureID string) (*models.Report, error) {
 	return s.repo.GetReportByCaptureID(ctx, captureID)
+}
+
+func (s *Service) GetAnomaly(ctx context.Context, captureID string) (*models.AnomalyResult, error) {
+	return s.repo.GetAnomalyByCaptureID(ctx, captureID)
+}
+
+func (s *Service) GetSecurityPosture(ctx context.Context) (*models.SecurityPostureSummary, error) {
+	return s.repo.GetSecurityPosture(ctx)
+}
+
+func (s *Service) GetRemediations(ctx context.Context) ([]models.RemediationItem, error) {
+	return s.repo.GetRemediations(ctx)
+}
+
+func (s *Service) CompareCaptures(ctx context.Context, baseID, targetID string) (*models.CaptureComparison, error) {
+	return s.repo.CompareCaptures(ctx, baseID, targetID)
+}
+
+// ── Model Registry Proxy ──
+
+func (s *Service) GetModelRegistry(ctx context.Context) ([]models.ModelCard, error) {
+	url := fmt.Sprintf("%s/models", s.cfg.AIServiceURL)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch models from AI service: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Models []models.ModelCard `json:"models"`
+		Count  int                `json:"count"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result.Models, nil
+}
+
+func (s *Service) GetModelCard(ctx context.Context, modelID string) (*models.ModelCard, error) {
+	url := fmt.Sprintf("%s/models/%s", s.cfg.AIServiceURL, modelID)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch model card: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("model not found")
+	}
+
+	var card models.ModelCard
+	if err := json.NewDecoder(resp.Body).Decode(&card); err != nil {
+		return nil, err
+	}
+	return &card, nil
+}
+
+// ── Demo Lab ──
+
+func (s *Service) GetDemoScenarios() []models.DemoScenario {
+	return []models.DemoScenario{
+		{
+			ID:           "weak-vpn",
+			Title:        "Legacy / Insecure VPN Configuration",
+			Description:  "IKEv1 with 3DES-CBC encryption, MD5/SHA1 authentication, DH Group 2, and no Perfect Forward Secrecy (PFS). Demonstrates detection of deprecated cryptographic suites.",
+			ExpectedRisk: "CRITICAL (Score: 80+)",
+			Category:     "Cryptographic Audit",
+			Filename:     "weak-ipsec.pcap",
+		},
+		{
+			ID:           "strong-vpn",
+			Title:        "Hardened Modern IPsec Tunnel",
+			Description:  "IKEv2 with AES-256-GCM authenticated cipher, SHA-256 integrity, DH Group 14 (2048-bit MODP), and PFS enabled. Demonstrates compliant cryptographic posture.",
+			ExpectedRisk: "LOW (Score: < 20)",
+			Category:     "Compliance Validation",
+			Filename:     "strong-ipsec.pcap",
+		},
+		{
+			ID:           "anomalous-vpn",
+			Title:        "Suspicious / Anomalous Encrypted Flow",
+			Description:  "Encrypted communication channel with erratic packet size variance, high burst ratios, and abnormal timing jitter. Exercises the Isolation Forest behavioral anomaly engine.",
+			ExpectedRisk: "HIGH Behavioral Anomaly",
+			Category:     "Behavioral AI",
+			Filename:     "anomalous-vpn.pcap",
+		},
+	}
 }
 
 // ── Helpers ──

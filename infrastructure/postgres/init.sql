@@ -89,6 +89,23 @@ CREATE TABLE IF NOT EXISTS reports (
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- ── anomaly_results ──
+CREATE TABLE IF NOT EXISTS anomaly_results (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    capture_id          UUID NOT NULL REFERENCES captures(id) ON DELETE CASCADE,
+    anomaly_score       DECIMAL(5,2) DEFAULT 0,
+    is_anomalous        BOOLEAN DEFAULT FALSE,
+    severity            VARCHAR(20) NOT NULL DEFAULT 'LOW',
+    status              VARCHAR(50) NOT NULL DEFAULT 'EVALUATED',
+    explanation         TEXT,
+    contributing_signals JSONB DEFAULT '[]',
+    model_version       VARCHAR(50) DEFAULT 'if-v1.0.0',
+    algorithm           VARCHAR(100) DEFAULT 'Isolation Forest',
+    validation_status   VARCHAR(100) DEFAULT 'Development / Synthetic-Data Validated',
+    method_source       VARCHAR(50) DEFAULT 'ML_ANOMALY',
+    created_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ── Indexes ──
 CREATE INDEX IF NOT EXISTS idx_captures_status ON captures(status);
 CREATE INDEX IF NOT EXISTS idx_captures_created ON captures(created_at DESC);

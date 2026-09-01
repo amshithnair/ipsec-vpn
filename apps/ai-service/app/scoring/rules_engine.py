@@ -147,6 +147,7 @@ class RulesEngine:
                         description=finding.get("description", ""),
                         evidence={"field": "encryption", "value": algorithm},
                         recommendation=finding.get("title", ""),
+                        source="RULE_BASED",
                     ))
                     rec = rule.get("recommendation", {})
                     if rec and rule.get("penalty", 0) > 0:

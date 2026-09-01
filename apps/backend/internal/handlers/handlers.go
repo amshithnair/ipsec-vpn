@@ -211,3 +211,88 @@ func (h *Handler) GetDashboardSummary(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, summary)
 }
+
+// ── Behavioral Anomalies ──
+
+func (h *Handler) GetAnomalies(c *gin.Context) {
+	captureID := c.Param("id")
+	result, err := h.svc.GetAnomaly(c.Request.Context(), captureID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "Anomaly assessment unavailable",
+			"message": "No behavioral anomaly assessment recorded for this capture (capture may have < 5 packets or failed evaluation).",
+			"status":  "UNAVAILABLE",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+// ── Security Posture ──
+
+func (h *Handler) GetSecurityPosture(c *gin.Context) {
+	summary, err := h.svc.GetSecurityPosture(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to aggregate security posture", "message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, summary)
+}
+
+// ── Remediation ──
+
+func (h *Handler) GetRemediations(c *gin.Context) {
+	remediations, err := h.svc.GetRemediations(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch remediations", "message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"remediations": remediations, "count": len(remediations)})
+}
+
+// ── Capture Comparison ──
+
+func (h *Handler) CompareCaptures(c *gin.Context) {
+	baseID := c.Query("base")
+	targetID := c.Query("target")
+	if baseID == "" || targetID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required query parameters: 'base' and 'target'"})
+		return
+	}
+
+	comparison, err := h.svc.CompareCaptures(c.Request.Context(), baseID, targetID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comparison failed", "message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, comparison)
+}
+
+// ── Model Registry ──
+
+func (h *Handler) GetModelRegistry(c *gin.Context) {
+	models, err := h.svc.GetModelRegistry(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "Failed to query AI service model registry", "message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"models": models, "count": len(models)})
+}
+
+func (h *Handler) GetModelCard(c *gin.Context) {
+	modelID := c.Param("id")
+	card, err := h.svc.GetModelCard(c.Request.Context(), modelID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Model card not found", "message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, card)
+}
+
+// ── Demo Lab ──
+
+func (h *Handler) GetDemoScenarios(c *gin.Context) {
+	scenarios := h.svc.GetDemoScenarios()
+	c.JSON(http.StatusOK, gin.H{"scenarios": scenarios, "count": len(scenarios)})
+}
+
