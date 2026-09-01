@@ -169,16 +169,28 @@ export function InvestigationWorkspacePage() {
             <Cpu size={20} style={{ color: '#38bdf8' }} />
           </div>
           <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Random Forest v1.0</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {classification.traffic_inference?.confidence ? `${Math.round(classification.traffic_inference.confidence * 100)}% Conf.` : 'RF Baseline'}
+            </span>
             <SourceBadge source="ML_CLASSIFIER" />
           </div>
+          {(!classification.traffic_inference?.traffic_type || classification.traffic_inference?.traffic_type === 'Unknown') && (
+            <div style={{ marginTop: 8, fontSize: '0.6875rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+              Passive flow statistics fall below the 60% certainty threshold. Additional packet volume is required for statistical fingerprinting.
+            </div>
+          )}
         </div>
       </div>
 
       {/* Protocol & Negotiation Evidence Grid */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-2)' }}>
-          <h3 style={{ fontSize: '1rem', margin: 0, fontWeight: 600 }}>Observed Protocol & Cryptographic Negotiation</h3>
+          <div>
+            <h3 style={{ fontSize: '1rem', margin: 0, fontWeight: 600 }}>Observed Protocol & Cryptographic Negotiation</h3>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
+              Cryptographic suites extracted from IKEv1/IKEv2 SA negotiation payloads without decrypting packet data.
+            </div>
+          </div>
           <SourceBadge source="DETERMINISTIC" />
         </div>
 
@@ -189,21 +201,25 @@ export function InvestigationWorkspacePage() {
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>IKE Version</div>
-            <div style={{ fontWeight: 600, marginTop: 2 }}>{classification.ike_version || 'Not Detected'}</div>
+            <div style={{ fontWeight: 600, marginTop: 2, color: classification.ike_version?.includes('v1') ? 'var(--sev-critical-solid)' : 'var(--text-primary)' }}>
+              {classification.ike_version || 'Not Detected'}
+            </div>
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Encryption Cipher</div>
-            <div style={{ fontWeight: 600, marginTop: 2, color: classification.encryption_algo?.includes('3DES') ? 'var(--sev-critical-solid)' : 'var(--text-primary)' }}>
+            <div style={{ fontWeight: 600, marginTop: 2, color: classification.encryption_algo?.includes('3DES') || classification.encryption_algo?.includes('DES') ? 'var(--sev-critical-solid)' : classification.encryption_algo?.includes('GCM') ? 'var(--sev-low-solid)' : 'var(--text-primary)' }}>
               {classification.encryption_algo || 'Unknown'}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Authentication / Hash</div>
-            <div style={{ fontWeight: 600, marginTop: 2 }}>{classification.auth_algo || 'Unknown'}</div>
+            <div style={{ fontWeight: 600, marginTop: 2, color: classification.auth_algo?.includes('MD5') || classification.auth_algo?.includes('SHA1') ? 'var(--sev-high-solid)' : 'var(--text-primary)' }}>
+              {classification.auth_algo || 'Unknown'}
+            </div>
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Diffie-Hellman Group</div>
-            <div style={{ fontWeight: 600, marginTop: 2, color: (classification.dh_group ?? 14) < 14 ? 'var(--sev-high-solid)' : 'var(--text-primary)' }}>
+            <div style={{ fontWeight: 600, marginTop: 2, color: classification.dh_group && classification.dh_group < 14 ? 'var(--sev-high-solid)' : 'var(--text-primary)' }}>
               {classification.dh_group ? `Group ${classification.dh_group}` : 'None'}
             </div>
           </div>
