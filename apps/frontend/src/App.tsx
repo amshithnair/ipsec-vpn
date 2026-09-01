@@ -1,13 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
-import { DashboardPage } from './pages/DashboardPage';
-import { CaptureHistoryPage } from './pages/CaptureHistoryPage';
-import { NewCapturePage } from './pages/NewCapturePage';
-import { AnalysisProgressPage } from './pages/AnalysisProgressPage';
-import { AnalysisOverviewPage } from './pages/AnalysisOverviewPage';
-import { SecurityAssessmentPage } from './pages/SecurityAssessmentPage';
-import { TechnicalDetailsPage } from './pages/TechnicalDetailsPage';
-import { TechnicalReportPage } from './pages/TechnicalReportPage';
+import {
+  DashboardPage,
+  CaptureHistoryPage,
+  NewCapturePage,
+  AnalysisProgressPage,
+  AnalysisOverviewPage,
+  SecurityAssessmentPage,
+  TechnicalDetailsPage,
+  TechnicalReportPage,
+  SecurityPosturePage,
+  InvestigationWorkspacePage,
+  CaptureComparisonPage,
+  RemediationCenterPage,
+  ModelCenterPage,
+  DemoLabPage,
+} from './pages';
 
 export default function App() {
   return (
@@ -17,26 +25,29 @@ export default function App() {
           {/* Dashboard */}
           <Route path="/" element={<DashboardPage />} />
 
-          {/* Capture history */}
+          {/* Captures */}
           <Route path="/captures" element={<CaptureHistoryPage />} />
-
-          {/* Upload */}
           <Route path="/captures/new" element={<NewCapturePage />} />
-
-          {/* Analysis progress */}
           <Route path="/captures/:id/analyzing" element={<AnalysisProgressPage />} />
 
-          {/* Analysis overview (hero) */}
-          <Route path="/captures/:id" element={<AnalysisOverviewPage />} />
-
-          {/* Security assessment */}
+          {/* Investigation Hub */}
+          <Route path="/investigations/:id" element={<InvestigationWorkspacePage />} />
+          <Route path="/captures/:id" element={<InvestigationWorkspacePage />} />
+          <Route path="/captures/:id/overview" element={<AnalysisOverviewPage />} />
           <Route path="/captures/:id/security" element={<SecurityAssessmentPage />} />
-
-          {/* Technical details */}
           <Route path="/captures/:id/technical" element={<TechnicalDetailsPage />} />
-
-          {/* Technical report */}
           <Route path="/captures/:id/report" element={<TechnicalReportPage />} />
+
+          {/* Security Posture & Remediation */}
+          <Route path="/posture" element={<SecurityPosturePage />} />
+          <Route path="/remediation" element={<RemediationCenterPage />} />
+
+          {/* Analysis & Hardening Comparison */}
+          <Route path="/compare" element={<CaptureComparisonPage />} />
+
+          {/* Intelligence & Demo */}
+          <Route path="/models" element={<ModelCenterPage />} />
+          <Route path="/demo" element={<DemoLabPage />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

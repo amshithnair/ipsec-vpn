@@ -1,5 +1,14 @@
-// Placeholder pages — will be fully implemented in Phase 2 & 3
-// Each file is a stub that renders correctly so the app compiles now.
-
-// ── DashboardPage ──────────────────────────────────────────
-export { DashboardPage } from './DashboardPage';
+export * from './DashboardPage';
+export * from './CaptureHistoryPage';
+export * from './NewCapturePage';
+export * from './AnalysisProgressPage';
+export * from './AnalysisOverviewPage';
+export * from './SecurityAssessmentPage';
+export * from './TechnicalDetailsPage';
+export * from './TechnicalReportPage';
+export * from './SecurityPosturePage';
+export * from './InvestigationWorkspacePage';
+export * from './CaptureComparisonPage';
+export * from './RemediationCenterPage';
+export * from './ModelCenterPage';
+export * from './DemoLabPage';

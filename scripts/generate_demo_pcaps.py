@@ -280,13 +280,58 @@ def generate_moderate_ipsec_pcap(output_path):
     print(f"✅ Generated moderate IPsec PCAP: {output_path} ({len(packets)} packets)")
 
 
+def generate_anomalous_vpn_pcap(output_path):
+    """
+    Generate an anomalous encrypted VPN communication capture:
+    - IKEv2 handshake
+    - Highly asymmetric, erratic burst payload sizes (e.g. 1400 bytes outbound vs 40 bytes inbound)
+    - Extreme packet size variance and abnormal inter-arrival timing
+    - Triggers Isolation Forest behavioral anomaly detection.
+    """
+    packets = []
+    src_ip = "192.168.100.50"
+    dst_ip = "198.51.100.1"
+
+    init_spi = b'\xfe\xdc\xba\x98\x76\x54\x32\x10'
+    resp_spi = b'\x00\x00\x00\x00\x00\x00\x00\x00'
+
+    # IKEv2 handshake
+    pkt1 = create_ikev2_sa_init(src_ip, dst_ip, init_spi, resp_spi,
+                                 enc_id=20, enc_key_len=256, auth_id=12, dh_group=14)
+    packets.append(pkt1)
+
+    resp_spi2 = b'\x01\x23\x45\x67\x89\xab\xcd\xef'
+    pkt2 = create_ikev2_sa_init(dst_ip, src_ip, init_spi, resp_spi2,
+                                 enc_id=20, enc_key_len=256, auth_id=12, dh_group=14)
+    packets.append(pkt2)
+
+    # Bursty, anomalous ESP traffic
+    spi_out = 0x5555AAAA
+    spi_in = 0xAAAA5555
+
+    # Outbound massive data bursts (simulating large asymmetric exfiltration/burst)
+    for seq in range(1, 80):
+        # erratic sizes between 400 and 1400 bytes
+        sz = 1400 if seq % 2 == 0 else 450
+        packets.append(create_esp_packet(src_ip, dst_ip, spi_out, seq, payload_size=sz))
+
+    # Sparse tiny ACKs
+    for seq in range(1, 10):
+        packets.append(create_esp_packet(dst_ip, src_ip, spi_in, seq, payload_size=32))
+
+    wrpcap(output_path, packets)
+    print(f"✅ Generated anomalous VPN PCAP: {output_path} ({len(packets)} packets)")
+
+
 if __name__ == "__main__":
     output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "pcaps")
     os.makedirs(output_dir, exist_ok=True)
-    
+
     generate_strong_ipsec_pcap(os.path.join(output_dir, "strong-ipsec.pcap"))
     generate_weak_ipsec_pcap(os.path.join(output_dir, "weak-ipsec.pcap"))
+    generate_anomalous_vpn_pcap(os.path.join(output_dir, "anomalous-vpn.pcap"))
     generate_non_ipsec_pcap(os.path.join(output_dir, "non-ipsec.pcap"))
     generate_moderate_ipsec_pcap(os.path.join(output_dir, "moderate-ipsec.pcap"))
-    
+
     print(f"\n🎯 All demo PCAPs generated in: {output_dir}")
+

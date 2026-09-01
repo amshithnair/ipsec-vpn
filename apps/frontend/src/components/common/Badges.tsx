@@ -26,6 +26,7 @@ const STATUS_LABELS: Record<CaptureStatus, string> = {
   uploaded:   'Uploaded',
   processing: 'Processing',
   completed:  'Completed',
+  analyzed:   'Analyzed',
   failed:     'Failed',
 };
 

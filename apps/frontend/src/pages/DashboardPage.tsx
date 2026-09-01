@@ -1,13 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, FileText, AlertTriangle, ShieldAlert, Upload } from 'lucide-react';
+import {
+  BarChart3,
+  FileText,
+  ShieldAlert,
+  Upload,
+  Activity,
+  ShieldCheck,
+  FlaskConical,
+  ArrowRight,
+} from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { fetchDashboardSummary } from '@/services/api';
-import { SeverityBadge, StatusBadge } from '@/components/common/Badges';
+import { SeverityBadge } from '@/components/common/Badges';
 import { ErrorState, EmptyState, CardSkeleton } from '@/components/common/States';
 import type { DashboardSummary } from '@/types';
 
-const COLORS = ['var(--sev-low-solid)', 'var(--sev-medium-solid)', 'var(--sev-high-solid)', 'var(--sev-critical-solid)'];
+const COLORS = [
+  'var(--sev-low-solid)',
+  'var(--sev-medium-solid)',
+  'var(--sev-high-solid)',
+  'var(--sev-critical-solid)',
+];
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -29,7 +43,9 @@ export function DashboardPage() {
   if (loading) {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-4)' }}>
-        {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} height={100} />)}
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} height={100} />
+        ))}
       </div>
     );
   }
@@ -44,32 +60,121 @@ export function DashboardPage() {
     { name: 'Critical', value: data.risk_distribution.critical },
   ];
 
+  const totalRiskValues = chartData.reduce((acc, d) => acc + d.value, 0);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-      {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-4)' }}>
-        <KpiCard icon={<FileText size={18} />} label="Total Captures" value={data.total_captures} color="var(--accent-primary)" />
-        <KpiCard icon={<BarChart3 size={18} />} label="Analyzed" value={data.analyzed} color="var(--sev-low-solid)" />
-        <KpiCard icon={<AlertTriangle size={18} />} label="High Risk" value={data.high_risk} color="var(--sev-high-solid)" />
-        <KpiCard icon={<ShieldAlert size={18} />} label="Critical" value={data.critical} color="var(--sev-critical-solid)" />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+      {/* Product Hero Banner */}
+      <div
+        className="card"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 'var(--space-4)',
+          background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%)',
+          border: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <ShieldCheck size={24} style={{ color: 'var(--accent-primary)' }} />
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
+              Encrypted Traffic Security Intelligence
+            </h2>
+          </div>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '6px 0 0 0', maxWidth: 650 }}>
+            Passive IPsec/VPN protocol auditing, cryptographic compliance against NIST SP 800-131A, and Isolation Forest behavioral anomaly detection.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => navigate('/demo')}>
+            <FlaskConical size={14} style={{ marginRight: 4 }} /> Open Demo Lab
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => navigate('/captures/new')}>
+            <Upload size={14} style={{ marginRight: 4 }} /> Ingest PCAP
+          </button>
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+      {/* KPI Cards Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
+        <KpiCard
+          icon={<FileText size={18} />}
+          label="Total Captures"
+          value={data.total_captures}
+          color="var(--accent-primary)"
+        />
+        <KpiCard
+          icon={<BarChart3 size={18} />}
+          label="Analyzed Captures"
+          value={data.analyzed}
+          color="var(--sev-low-solid)"
+        />
+        <KpiCard
+          icon={<ShieldAlert size={18} />}
+          label="High / Critical Risks"
+          value={data.high_risk + data.critical}
+          color="var(--sev-critical-solid)"
+        />
+        <KpiCard
+          icon={<Activity size={18} />}
+          label="Behavioral Anomalies"
+          value={data.anomalies_count ?? 0}
+          color="var(--sev-high-solid)"
+        />
+      </div>
+
+      {/* Visualizations & Actions */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 'var(--space-4)' }}>
         {/* Risk Distribution Chart */}
         <div className="card">
-          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>Risk Distribution</h3>
-          <div style={{ height: 200 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                  {chartData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)' }} />
-              </PieChart>
-            </ResponsiveContainer>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>
+              System Risk Distribution
+            </h3>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {totalRiskValues} evaluated captures
+            </span>
           </div>
+
+          <div style={{ height: 200 }}>
+            {totalRiskValues === 0 ? (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                No analyzed captures in database.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={3}
+                  >
+                    {chartData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                      color: 'var(--text-primary)',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
           <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-4)', marginTop: 'var(--space-2)' }}>
             {chartData.map((d, i) => (
               <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
@@ -80,48 +185,108 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 'var(--space-4)' }}>
-          <Upload size={32} style={{ color: 'var(--accent-primary)' }} />
-          <h3 style={{ fontSize: '1rem', margin: 0 }}>Analyze New PCAP</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.813rem', textAlign: 'center', maxWidth: 300 }}>
-            Upload a packet capture to run deterministic IPsec analysis and security assessment.
-          </p>
-          <button className="btn btn-primary" onClick={() => navigate('/captures/new')}>
-            <Upload size={14} /> Upload PCAP
-          </button>
+        {/* Security Posture & Quick Links */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 'var(--space-4)' }}>
+          <div>
+            <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: '0 0 var(--space-3) 0', fontWeight: 600 }}>
+              Security Posture Quick-Actions
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <button
+                className="btn btn-secondary"
+                style={{ justifyContent: 'space-between', width: '100%', padding: '10px 14px' }}
+                onClick={() => navigate('/posture')}
+              >
+                <span>Enterprise Security Posture</span>
+                <ArrowRight size={14} />
+              </button>
+              <button
+                className="btn btn-secondary"
+                style={{ justifyContent: 'space-between', width: '100%', padding: '10px 14px' }}
+                onClick={() => navigate('/remediation')}
+              >
+                <span>Remediation Center</span>
+                <ArrowRight size={14} />
+              </button>
+              <button
+                className="btn btn-secondary"
+                style={{ justifyContent: 'space-between', width: '100%', padding: '10px 14px' }}
+                onClick={() => navigate('/compare')}
+              >
+                <span>Capture Comparison Matrix</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div style={{ padding: 'var(--space-3)', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <strong>Analysis Integrity:</strong> Deterministic rules and ML inference are strictly separated and labeled across all views.
+          </div>
         </div>
       </div>
 
       {/* Recent Captures */}
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0 }}>Recent Captures</h3>
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/captures')}>View All</button>
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-4)', borderBottom: '1px solid var(--border-subtle)' }}>
+          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>
+            Recent Captures & Investigations
+          </h3>
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/captures')}>
+            View All Captures →
+          </button>
         </div>
+
         {data.recent_captures.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.813rem' }}>No captures yet.</p>
+          <div style={{ padding: 'var(--space-4)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            No recent packet captures.
+          </div>
         ) : (
           <table className="data-table">
             <thead>
               <tr>
                 <th>Filename</th>
-                <th>Protocol</th>
-                <th>Risk Score</th>
+                <th>System Risk</th>
                 <th>Severity</th>
-                <th>Status</th>
-                <th>Date</th>
+                <th>Behavioral Status</th>
+                <th>Ingested</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {data.recent_captures.map((c) => (
-                <tr key={c.id} onClick={() => navigate(`/captures/${c.id}`)} style={{ cursor: 'pointer' }}>
-                  <td style={{ fontWeight: 500 }}>{c.filename}</td>
-                  <td><code style={{ fontSize: '0.75rem' }}>{c.protocol || '—'}</code></td>
-                  <td>{c.risk_score ?? '—'}</td>
-                  <td><SeverityBadge severity={c.severity} /></td>
-                  <td><StatusBadge status={c.status} /></td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{new Date(c.created_at).toLocaleDateString()}</td>
+                <tr key={c.id}>
+                  <td style={{ fontWeight: 600 }}>
+                    <code style={{ fontSize: '0.813rem' }}>{c.filename}</code>
+                  </td>
+                  <td>
+                    <strong>{c.risk_score}</strong> <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 100</span>
+                  </td>
+                  <td>
+                    <SeverityBadge severity={c.severity} />
+                  </td>
+                  <td>
+                    {c.is_anomalous ? (
+                      <span className="badge badge-critical" style={{ fontSize: '0.6875rem' }}>
+                        Anomaly ({c.anomaly_score})
+                      </span>
+                    ) : (
+                      <span className="badge badge-low" style={{ fontSize: '0.6875rem' }}>
+                        Normal ({c.anomaly_score ?? 0})
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ fontSize: '0.813rem', color: 'var(--text-muted)' }}>
+                    {new Date(c.created_at).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                      onClick={() => navigate(`/investigations/${c.id}`)}
+                    >
+                      Investigate <ArrowRight size={12} style={{ marginLeft: 3 }} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -132,15 +297,17 @@ export function DashboardPage() {
   );
 }
 
-function KpiCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
+function KpiCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number | string; color: string }) {
   return (
-    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-      <div style={{ padding: 'var(--space-3)', background: `${color}15`, borderRadius: 'var(--radius-md)', color }}>
-        {icon}
+    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 6, borderLeft: `3px solid ${color}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {label}
+        </span>
+        <span style={{ color }}>{icon}</span>
       </div>
-      <div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 2 }}>{label}</div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{value}</div>
+      <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+        {value}
       </div>
     </div>
   );
