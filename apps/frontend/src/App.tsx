@@ -15,15 +15,19 @@ import {
   RemediationCenterPage,
   ModelCenterPage,
   DemoLabPage,
+  LandingPage,
 } from './pages';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+
         <Route element={<AppShell />}>
           {/* Dashboard */}
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
 
           {/* Captures */}
           <Route path="/captures" element={<CaptureHistoryPage />} />
