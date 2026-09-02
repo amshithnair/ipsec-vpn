@@ -6,21 +6,22 @@ import {
   ShieldAlert,
   Upload,
   Activity,
-  ShieldCheck,
   FlaskConical,
   ArrowRight,
+  Shield,
+  Zap,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { fetchDashboardSummary } from '@/services/api';
-import { SeverityBadge } from '@/components/common/Badges';
+import { SeverityBadge, SecurifyPill } from '@/components/common/Badges';
 import { ErrorState, EmptyState, CardSkeleton } from '@/components/common/States';
 import type { DashboardSummary } from '@/types';
 
 const COLORS = [
-  'var(--sev-low-solid)',
-  'var(--sev-medium-solid)',
-  'var(--sev-high-solid)',
-  'var(--sev-critical-solid)',
+  '#00E699', // Low - Emerald
+  '#FFD043', // Medium - Gold
+  '#FF8C38', // High - Warm Amber
+  '#FF2D55', // Critical - Crimson Red
 ];
 
 export function DashboardPage() {
@@ -44,7 +45,7 @@ export function DashboardPage() {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-4)' }}>
         {Array.from({ length: 4 }).map((_, i) => (
-          <CardSkeleton key={i} height={100} />
+          <CardSkeleton key={i} height={120} />
         ))}
       </div>
     );
@@ -63,84 +64,165 @@ export function DashboardPage() {
   const totalRiskValues = chartData.reduce((acc, d) => acc + d.value, 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-      {/* Product Hero Banner */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+      {/* Product Hero Banner (Securify Reference Design) */}
       <div
         className="card"
         style={{
+          position: 'relative',
+          padding: 'var(--space-8) var(--space-6)',
           display: 'flex',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 'var(--space-4)',
-          background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%)',
-          border: '1px solid var(--border-subtle)',
+          textAlign: 'center',
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(255, 45, 85, 0.22) 0%, rgba(15, 14, 22, 0.9) 70%)',
+          border: '1px solid rgba(255, 45, 85, 0.3)',
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <ShieldCheck size={24} style={{ color: 'var(--accent-primary)' }} />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
-              Encrypted Traffic Security Intelligence
-            </h2>
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '6px 0 0 0', maxWidth: 650 }}>
-            Passive IPsec/VPN protocol auditing, cryptographic compliance against NIST SP 800-131A, and Isolation Forest behavioral anomaly detection.
-          </p>
+        {/* Ambient Grid overlay inside Hero */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Securify Security Badge Pill */}
+        <div style={{ marginBottom: 16, zIndex: 1 }}>
+          <SecurifyPill text="Military-Grade Security VPN Protocol Analyzer" />
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => navigate('/demo')}>
-            <FlaskConical size={14} style={{ marginRight: 4 }} /> Open Demo Lab
+        {/* Hero Title with Highlight Box */}
+        <h1
+          style={{
+            fontSize: '2.5rem',
+            fontWeight: 800,
+            maxWidth: 820,
+            lineHeight: 1.15,
+            marginBottom: 16,
+            zIndex: 1,
+            letterSpacing: '-0.03em',
+          }}
+        >
+          Most <span className="highlight-box">Secure</span> VPN For Total Online Freedom
+        </h1>
+
+        <p
+          style={{
+            fontSize: '1rem',
+            color: 'var(--text-secondary)',
+            maxWidth: 640,
+            marginBottom: 28,
+            zIndex: 1,
+            lineHeight: 1.6,
+          }}
+        >
+          Passive IPsec/VPN protocol auditing, NIST SP 800-131A cryptographic compliance, and Isolation Forest ML behavioral anomaly detection.
+        </p>
+
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: 16, zIndex: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button className="btn btn-primary btn-lg" onClick={() => navigate('/captures/new')}>
+            <Upload size={16} />
+            <span>Ingest PCAP Capture</span>
+            <ArrowRight size={16} />
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => navigate('/captures/new')}>
-            <Upload size={14} style={{ marginRight: 4 }} /> Ingest PCAP
+
+          <button className="btn btn-secondary btn-lg" onClick={() => navigate('/demo')}>
+            <FlaskConical size={16} />
+            <span>Explore Demo Lab</span>
           </button>
         </div>
+
+        {/* Bottom Arc Glow Accent */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: -80,
+            width: '80%',
+            height: 120,
+            background: 'radial-gradient(ellipse at 50% 100%, rgba(255, 45, 85, 0.4) 0%, transparent 70%)',
+            pointerEvents: 'none',
+            borderRadius: '50%',
+          }}
+        />
+      </div>
+
+      {/* Marquee Ticker Ribbon (Securify Reference) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+          padding: '12px 24px',
+          background: 'rgba(255, 45, 85, 0.08)',
+          border: '1px solid rgba(255, 45, 85, 0.2)',
+          borderRadius: 'var(--radius-full)',
+          fontSize: '0.786rem',
+          fontWeight: 700,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'var(--text-primary)',
+          flexWrap: 'wrap',
+          gap: 12,
+        }}
+      >
+        <span>BROWSE FREELY</span>
+        <span style={{ color: 'var(--accent-primary)' }}>✱</span>
+        <span>SECURE ANYWHERE</span>
+        <span style={{ color: 'var(--accent-primary)' }}>✱</span>
+        <span>DIGITAL SHIELD</span>
+        <span style={{ color: 'var(--accent-primary)' }}>✱</span>
+        <span>SAFE AUDITING</span>
       </div>
 
       {/* KPI Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
         <KpiCard
-          icon={<FileText size={18} />}
+          icon={<FileText size={20} />}
           label="Total Captures"
           value={data.total_captures}
-          color="var(--accent-primary)"
+          color="#FF2D55"
         />
         <KpiCard
-          icon={<BarChart3 size={18} />}
+          icon={<BarChart3 size={20} />}
           label="Analyzed Captures"
           value={data.analyzed}
-          color="var(--sev-low-solid)"
+          color="#00E699"
         />
         <KpiCard
-          icon={<ShieldAlert size={18} />}
+          icon={<ShieldAlert size={20} />}
           label="High / Critical Risks"
           value={data.high_risk + data.critical}
-          color="var(--sev-critical-solid)"
+          color="#FF2D55"
         />
         <KpiCard
-          icon={<Activity size={18} />}
+          icon={<Activity size={20} />}
           label="Behavioral Anomalies"
           value={data.anomalies_count ?? 0}
-          color="var(--sev-high-solid)"
+          color="#FF8C38"
         />
       </div>
 
       {/* Visualizations & Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 'var(--space-4)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 'var(--space-5)' }}>
         {/* Risk Distribution Chart */}
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>
+            <h3 style={{ fontSize: '0.95rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
               System Risk Distribution
             </h3>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <span className="badge badge-pending" style={{ fontSize: '0.72rem' }}>
               {totalRiskValues} evaluated captures
             </span>
           </div>
 
-          <div style={{ height: 200 }}>
+          <div style={{ height: 210 }}>
             {totalRiskValues === 0 ? (
               <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                 No analyzed captures in database.
@@ -154,20 +236,21 @@ export function DashboardPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={4}
                   >
                     {chartData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i]} />
+                      <Cell key={i} fill={COLORS[i]} stroke="rgba(0,0,0,0.5)" strokeWidth={2} />
                     ))}
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border-subtle)',
+                      background: 'rgba(22, 20, 31, 0.95)',
+                      border: '1px solid rgba(255, 45, 85, 0.4)',
                       borderRadius: 'var(--radius-md)',
-                      color: 'var(--text-primary)',
+                      color: '#FFF',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.8)',
                     }}
                   />
                 </PieChart>
@@ -175,10 +258,10 @@ export function DashboardPage() {
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-4)', marginTop: 'var(--space-2)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-5)', marginTop: 'var(--space-2)' }}>
             {chartData.map((d, i) => (
-              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS[i], display: 'inline-block' }} />
+              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.786rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS[i], display: 'inline-block', boxShadow: `0 0 8px ${COLORS[i]}` }} />
                 {d.name}: {d.value}
               </div>
             ))}
@@ -188,47 +271,56 @@ export function DashboardPage() {
         {/* Security Posture & Quick Links */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 'var(--space-4)' }}>
           <div>
-            <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: '0 0 var(--space-3) 0', fontWeight: 600 }}>
-              Security Posture Quick-Actions
+            <h3 style={{ fontSize: '0.95rem', color: 'var(--text-primary)', margin: '0 0 var(--space-4) 0', fontWeight: 700 }}>
+              Security Posture Actions
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               <button
                 className="btn btn-secondary"
-                style={{ justifyContent: 'space-between', width: '100%', padding: '10px 14px' }}
+                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 18px', borderRadius: 'var(--radius-md)' }}
                 onClick={() => navigate('/posture')}
               >
-                <span>Enterprise Security Posture</span>
-                <ArrowRight size={14} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Shield size={16} color="#FF2D55" />
+                  <span>Enterprise Security Posture</span>
+                </div>
+                <ArrowRight size={15} />
               </button>
               <button
                 className="btn btn-secondary"
-                style={{ justifyContent: 'space-between', width: '100%', padding: '10px 14px' }}
+                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 18px', borderRadius: 'var(--radius-md)' }}
                 onClick={() => navigate('/remediation')}
               >
-                <span>Remediation Center</span>
-                <ArrowRight size={14} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Zap size={16} color="#FF2D55" />
+                  <span>Remediation Center</span>
+                </div>
+                <ArrowRight size={15} />
               </button>
               <button
                 className="btn btn-secondary"
-                style={{ justifyContent: 'space-between', width: '100%', padding: '10px 14px' }}
+                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 18px', borderRadius: 'var(--radius-md)' }}
                 onClick={() => navigate('/compare')}
               >
-                <span>Capture Comparison Matrix</span>
-                <ArrowRight size={14} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Activity size={16} color="#FF2D55" />
+                  <span>Capture Comparison Matrix</span>
+                </div>
+                <ArrowRight size={15} />
               </button>
             </div>
           </div>
 
-          <div style={{ padding: 'var(--space-3)', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            <strong>Analysis Integrity:</strong> Deterministic rules and ML inference are strictly separated and labeled across all views.
+          <div style={{ padding: 'var(--space-4)', background: 'rgba(255, 45, 85, 0.08)', border: '1px solid rgba(255, 45, 85, 0.2)', borderRadius: 'var(--radius-md)', fontSize: '0.786rem', color: 'var(--text-secondary)' }}>
+            <strong style={{ color: '#FFF' }}>Cryptographic Integrity:</strong> Rules engine & ML models isolate anomalous packet handshake vectors in real-time.
           </div>
         </div>
       </div>
 
-      {/* Recent Captures */}
+      {/* Recent Captures Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-4)', borderBottom: '1px solid var(--border-subtle)' }}>
-          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-5)', borderBottom: '1px solid var(--border-subtle)' }}>
+          <h3 style={{ fontSize: '0.95rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
             Recent Captures & Investigations
           </h3>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate('/captures')}>
@@ -237,7 +329,7 @@ export function DashboardPage() {
         </div>
 
         {data.recent_captures.length === 0 ? (
-          <div style={{ padding: 'var(--space-4)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+          <div style={{ padding: 'var(--space-6)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
             No recent packet captures.
           </div>
         ) : (
@@ -256,10 +348,10 @@ export function DashboardPage() {
               {data.recent_captures.map((c) => (
                 <tr key={c.id}>
                   <td style={{ fontWeight: 600 }}>
-                    <code style={{ fontSize: '0.813rem' }}>{c.filename}</code>
+                    <code>{c.filename}</code>
                   </td>
                   <td>
-                    <strong>{c.risk_score}</strong> <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 100</span>
+                    <strong style={{ color: '#FFF', fontSize: '1rem' }}>{c.risk_score}</strong> <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 100</span>
                   </td>
                   <td>
                     <SeverityBadge severity={c.severity} />
@@ -280,8 +372,8 @@ export function DashboardPage() {
                   </td>
                   <td>
                     <button
-                      className="btn btn-secondary btn-sm"
-                      style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                      className="btn btn-primary btn-sm"
+                      style={{ padding: '4px 12px', fontSize: '0.75rem' }}
                       onClick={() => navigate(`/investigations/${c.id}`)}
                     >
                       Investigate <ArrowRight size={12} style={{ marginLeft: 3 }} />
@@ -299,14 +391,14 @@ export function DashboardPage() {
 
 function KpiCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number | string; color: string }) {
   return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 6, borderLeft: `3px solid ${color}` }}>
+    <div className="card metric-card" style={{ borderLeft: `4px solid ${color}` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
           {label}
         </span>
-        <span style={{ color }}>{icon}</span>
+        <span style={{ color, filter: `drop-shadow(0 0 6px ${color})` }}>{icon}</span>
       </div>
-      <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+      <div style={{ fontSize: '2rem', fontWeight: 800, color: '#FFFFFF', lineHeight: 1.1, fontFamily: 'var(--font-heading)' }}>
         {value}
       </div>
     </div>

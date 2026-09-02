@@ -36,12 +36,12 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       {status === 'processing' && (
         <span
           style={{
-            width: 5,
-            height: 5,
+            width: 6,
+            height: 6,
             borderRadius: '50%',
             background: 'currentColor',
             display: 'inline-block',
-            animation: 'pulse 1.5s ease-in-out infinite',
+            animation: 'pulse-glow 1.5s ease-in-out infinite',
           }}
         />
       )}
@@ -108,27 +108,27 @@ interface SourceBadgeProps {
 
 const SOURCE_LABELS: Record<string, { label: string; bg: string; color: string }> = {
   DETERMINISTIC: { label: 'DETERMINISTIC', bg: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' },
-  RULE_BASED:    { label: 'RULE-BASED',    bg: 'rgba(168, 85, 247, 0.15)', color: '#c084fc' },
-  ML_CLASSIFIER: { label: 'ML CLASSIFIER', bg: 'rgba(34, 197, 94, 0.15)',  color: '#4ade80' },
-  ML_ANOMALY:    { label: 'ML ANOMALY',    bg: 'rgba(249, 115, 22, 0.15)', color: '#fb923c' },
-  HYBRID_RISK:   { label: 'HYBRID RISK',   bg: 'rgba(234, 179, 8, 0.15)',  color: '#facc15' },
+  RULE_BASED:    { label: 'RULE-BASED',    bg: 'rgba(192, 132, 252, 0.15)', color: '#c084fc' },
+  ML_CLASSIFIER: { label: 'ML CLASSIFIER', bg: 'rgba(0, 230, 153, 0.15)',  color: '#00E699' },
+  ML_ANOMALY:    { label: 'ML ANOMALY',    bg: 'rgba(255, 45, 85, 0.15)',  color: '#FF2D55' },
+  HYBRID_RISK:   { label: 'HYBRID RISK',   bg: 'rgba(255, 191, 0, 0.15)',  color: '#FFD043' },
 };
 
 export function SourceBadge({ source = 'RULE_BASED' }: SourceBadgeProps) {
-  const meta = SOURCE_LABELS[source] || { label: source, bg: 'rgba(148, 163, 184, 0.15)', color: '#94a3b8' };
+  const meta = SOURCE_LABELS[source] || { label: source, bg: 'rgba(160, 160, 181, 0.15)', color: '#A0A0B5' };
   return (
     <span
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        padding: '2px 7px',
-        borderRadius: 4,
+        padding: '3px 9px',
+        borderRadius: 9999,
         fontSize: '0.6875rem',
         fontWeight: 700,
         letterSpacing: '0.5px',
         background: meta.bg,
         color: meta.color,
-        border: `1px solid ${meta.color}33`,
+        border: `1px solid ${meta.color}44`,
         textTransform: 'uppercase',
       }}
     >
@@ -137,3 +137,12 @@ export function SourceBadge({ source = 'RULE_BASED' }: SourceBadgeProps) {
   );
 }
 
+// ── Securify Pill Badge ──────────────────────────────────────
+export function SecurifyPill({ text }: { text: string }) {
+  return (
+    <div className="securify-pill-badge">
+      <span className="badge-pulse-dot" />
+      <span>{text}</span>
+    </div>
+  );
+}

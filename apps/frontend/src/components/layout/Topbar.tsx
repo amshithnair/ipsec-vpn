@@ -29,6 +29,16 @@ function useBreadcrumbs(): Crumb[] {
       else if (parts[2] === 'technical')    crumbs.push({ label: 'Technical Details' });
       else if (parts[2] === 'report')       crumbs.push({ label: 'Technical Report' });
     }
+  } else if (parts[0] === 'posture') {
+    crumbs.push({ label: 'Security Posture' });
+  } else if (parts[0] === 'remediation') {
+    crumbs.push({ label: 'Remediation Center' });
+  } else if (parts[0] === 'compare') {
+    crumbs.push({ label: 'Capture Comparison' });
+  } else if (parts[0] === 'models') {
+    crumbs.push({ label: 'Model Center' });
+  } else if (parts[0] === 'demo') {
+    crumbs.push({ label: 'Demo Lab' });
   }
 
   return crumbs;
@@ -62,10 +72,16 @@ export function Topbar() {
         ))}
       </nav>
 
+      {/* Security Status Pill (Securify Reference) */}
+      <div className="securify-pill-badge" style={{ display: 'flex', alignItems: 'center' }}>
+        <span className="badge-pulse-dot" />
+        <span>Military-Grade Security VPN</span>
+      </div>
+
       {/* Right actions */}
       <div className="topbar-actions">
         <button
-          className="btn btn-ghost btn-icon btn-sm"
+          className="btn btn-secondary btn-icon btn-sm"
           title="Notifications"
           aria-label="Notifications"
           id="topbar-notifications-btn"
@@ -77,8 +93,8 @@ export function Topbar() {
           onClick={() => navigate('/captures/new')}
           id="topbar-analyze-btn"
         >
-          <Upload size={13} />
-          Analyze PCAP
+          <Upload size={14} />
+          <span>Analyze PCAP</span>
         </button>
       </div>
     </header>
