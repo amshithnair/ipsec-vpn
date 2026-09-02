@@ -1,72 +1,76 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  FolderOpen,
-  Upload,
-  Shield,
-  Activity,
-  ChevronRight,
+  LayoutDashboard, FolderSearch, Upload,
+  Shield, Activity, Cpu,
 } from 'lucide-react';
 
-interface SidebarProps {
-  onAnalyze?: () => void;
-}
-
-const navItems = [
-  { to: '/',          icon: LayoutDashboard, label: 'Dashboard',        end: true },
-  { to: '/captures',  icon: FolderOpen,      label: 'Capture History',  end: false },
-  { to: '/captures/new', icon: Upload,       label: 'New Capture',      end: false },
+const NAV = [
+  { to: '/',        label: 'Dashboard',       icon: <LayoutDashboard size={15} />, end: true },
+  { to: '/captures',label: 'Capture History', icon: <FolderSearch    size={15} /> },
 ];
 
-export function Sidebar({ onAnalyze }: SidebarProps) {
+export function Sidebar() {
   const navigate = useNavigate();
 
   return (
     <aside className="app-sidebar">
       {/* Logo */}
-      <div className="sidebar-logo">
+      <div
+        className="sidebar-logo"
+        style={{ cursor: 'pointer' }}
+        onClick={() => navigate('/')}
+      >
         <div className="sidebar-logo-icon">
-          <Shield size={16} color="#fff" strokeWidth={2.5} />
+          <Shield size={16} color="#fff" />
         </div>
         <div className="sidebar-logo-text">
-          <span className="sidebar-logo-title">IPsec Intelligence</span>
-          <span className="sidebar-logo-subtitle">Protocol Analyzer</span>
+          <span className="sidebar-logo-name">IPsec Intelligence</span>
+          <span className="sidebar-logo-sub">Protocol Analyzer</span>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        <div className="sidebar-nav-section">Navigation</div>
+        <div className="sidebar-section-label">Navigation</div>
 
-        {navItems.map(({ to, icon: Icon, label, end }) => (
+        {NAV.map(item => (
           <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              `sidebar-nav-item${isActive ? ' active' : ''}`
-            }
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
           >
-            <Icon size={15} className="nav-icon" />
-            {label}
+            <span className="sidebar-link-icon">{item.icon}</span>
+            {item.label}
           </NavLink>
         ))}
 
-        <div className="sidebar-nav-section" style={{ marginTop: 8 }}>Actions</div>
+        <div className="sidebar-section-label" style={{ marginTop: 8 }}>Analysis</div>
 
-        <button
-          className="sidebar-nav-item"
-          onClick={() => onAnalyze ? onAnalyze() : navigate('/captures/new')}
+        <NavLink
+          to="/captures/new"
+          className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
         >
-          <Activity size={15} className="nav-icon" />
-          Analyze PCAP
-        </button>
+          <span className="sidebar-link-icon"><Upload size={15} /></span>
+          New Capture
+        </NavLink>
       </nav>
 
-      {/* Footer */}
+      {/* Footer status */}
       <div className="sidebar-footer">
-        <div style={{ marginBottom: 4 }}>IPsec Intelligence</div>
-        <div>Frontend MVP · Phase 1</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 7, height: 7, borderRadius: '50%',
+            background: '#33cc66',
+            boxShadow: '0 0 6px #33cc66',
+          }} />
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+            Service Online
+          </span>
+        </div>
+        <div style={{ fontSize: '0.625rem', color: 'var(--text-disabled)', marginTop: 4 }}>
+          v1.0.0-MVP
+        </div>
       </div>
     </aside>
   );

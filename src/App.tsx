@@ -1,13 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
-import { DashboardPage } from './pages/DashboardPage';
-import { CaptureHistoryPage } from './pages/CaptureHistoryPage';
-import { NewCapturePage } from './pages/NewCapturePage';
-import { AnalysisProgressPage } from './pages/AnalysisProgressPage';
-import { AnalysisOverviewPage } from './pages/AnalysisOverviewPage';
-import { SecurityAssessmentPage } from './pages/SecurityAssessmentPage';
-import { TechnicalDetailsPage } from './pages/TechnicalDetailsPage';
-import { TechnicalReportPage } from './pages/TechnicalReportPage';
+import {
+  DashboardPage,
+  CaptureHistoryPage,
+  NewCapturePage,
+  AnalysisProgressPage,
+  AnalysisOverviewPage,
+  SecurityAssessmentPage,
+  TechnicalDetailsPage,
+  TechnicalReportPage,
+} from './pages';
 
 export default function App() {
   return (

@@ -1,0 +1,1 @@
+export { CaptureTableRow } from './CaptureTableRow';

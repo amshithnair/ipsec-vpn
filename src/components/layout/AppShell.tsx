@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { Topbar } from './Topbar';
+import { Topbar }  from './Topbar';
 
 export function AppShell() {
   return (
@@ -8,7 +8,7 @@ export function AppShell() {
       <Sidebar />
       <div className="app-main">
         <Topbar />
-        <main className="app-content">
+        <main className="app-page">
           <Outlet />
         </main>
       </div>
