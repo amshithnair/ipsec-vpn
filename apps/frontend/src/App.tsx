@@ -16,7 +16,6 @@ import {
   RemediationCenterPage,
   ModelCenterPage,
   DemoLabPage,
-  LandingPage,
 } from './pages';
 
 export default function App() {

@@ -104,7 +104,6 @@ export function LandingPage() {
         if (entry.isIntersecting && !ringsFilled) {
           setRingsFilled(true);
 
-          let start = 0;
           const duration = 1500;
           const startTime = performance.now();
 
@@ -248,7 +247,7 @@ export function LandingPage() {
             <span key={i} style={{ display: 'inline-flex', gap: 32 }}>
               <span className="landing-ticker-item">VANTAGE AI DISSECTION <span className="landing-ticker-star">✱</span></span>
               <span className="landing-ticker-item">NIST SP 800-77 COMPLIANCE <span className="landing-ticker-star">✱</span></span>
-              <span className="landing-ticker-item">AUTOMATED RISK SCORING <span class="landing-ticker-star">✱</span></span>
+              <span className="landing-ticker-item">AUTOMATED RISK SCORING <span className="landing-ticker-star">✱</span></span>
               <span className="landing-ticker-item">ESP TRAFFIC INFERENCE <span className="landing-ticker-star">✱</span></span>
               <span className="landing-ticker-item">IPSEC SECURITY ASSESSMENT <span className="landing-ticker-star">✱</span></span>
             </span>
