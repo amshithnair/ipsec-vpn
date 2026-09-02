@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import {
+  LandingPage,
   DashboardPage,
   CaptureHistoryPage,
   NewCapturePage,
@@ -21,9 +22,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Landing Page (Standalone without AppShell sidebar) */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landing" element={<LandingPage />} />
+
+        {/* Main App Routes (Inside AppShell) */}
         <Route element={<AppShell />}>
           {/* Dashboard */}
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
 
           {/* Captures */}
           <Route path="/captures" element={<CaptureHistoryPage />} />
@@ -56,3 +62,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
