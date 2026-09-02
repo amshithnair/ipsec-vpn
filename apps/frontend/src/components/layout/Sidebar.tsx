@@ -20,7 +20,7 @@ const navSections = [
   {
     title: 'Overview',
     items: [
-      { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', end: true },
       { to: '/captures', icon: FolderOpen, label: 'Capture History', end: false },
       { to: '/captures/new', icon: Upload, label: 'New Capture', end: false },
     ]
