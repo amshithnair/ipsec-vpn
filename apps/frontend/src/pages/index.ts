@@ -12,5 +12,3 @@ export * from './CaptureComparisonPage';
 export * from './RemediationCenterPage';
 export * from './ModelCenterPage';
 export * from './DemoLabPage';
-export * from './LandingPage';
-

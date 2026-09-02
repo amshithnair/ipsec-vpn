@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IPsec Intelligence — AI Protocol Analyzer & Security Assessment Framework</title>
-  <meta name="description" content="AI-Powered IPsec VPN Protocol Analyzer and Security Assessment Framework developed for NTRO (SIH 2026 Problem Statement ID: 26160)." />
+  <title>VANTAGE — AI-Powered IPsec VPN Protocol Analyzer</title>
+  <meta name="description" content="VANTAGE: AI-Powered IPsec VPN Protocol Analyzer and Security Assessment Framework developed for NTRO (SIH 2026 Problem Statement ID: 26160)." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -41,7 +41,6 @@
       overflow-x: hidden;
     }
 
-    /* Container */
     .container {
       max-width: 1220px;
       margin: 0 auto;
@@ -50,15 +49,24 @@
       z-index: 2;
     }
 
-    /* ── UNIFIED SEAMLESS NAVBAR ────────────────────────────── */
+    /* ── ULTRA-CLEAN SEAMLESS NAVBAR ─────────────────────────── */
     .navbar {
-      position: absolute;
+      position: fixed;
       top: 0; left: 0; right: 0;
-      z-index: 20;
-      padding: 24px 0;
-      background: transparent;
-      border-bottom: none;
-      transition: all 0.3s var(--ease);
+      z-index: 1000;
+      padding: 22px 0;
+      background: rgba(5, 5, 7, 0.65);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      transition: all 0.35s var(--ease);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .navbar.scrolled {
+      padding: 14px 0;
+      background: rgba(5, 5, 7, 0.92);
+      border-bottom: 1px solid rgba(255, 30, 66, 0.18);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
     }
 
     .nav-inner {
@@ -75,48 +83,63 @@
       text-decoration: none;
     }
 
-    .brand-icon {
+    .brand-logo-mark {
       width: 36px; height: 36px;
-      background: var(--red);
+      background: linear-gradient(135deg, #ff3b5c, #ff1e42);
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 20px rgba(255, 30, 66, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(255, 30, 66, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
       transition: transform 0.3s var(--ease);
+      letter-spacing: -0.05em;
     }
 
-    .nav-brand:hover .brand-icon { transform: scale(1.08) rotate(-3deg); }
+    .nav-brand:hover .brand-logo-mark { transform: scale(1.08) rotate(-4deg); }
 
     .brand-text {
-      font-size: 1.0625rem;
-      font-weight: 800;
+      font-size: 1.2rem;
+      font-weight: 900;
       color: #ffffff;
-      letter-spacing: -0.02em;
+      letter-spacing: 0.06em;
     }
 
-    .nav-pill-menu {
+    .nav-center-links {
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 999px;
-      padding: 6px 8px;
+      gap: 32px;
     }
 
-    .nav-pill-menu a {
-      color: #a1a1aa;
+    .nav-center-links a {
+      color: #909096;
       text-decoration: none;
-      font-size: 0.8125rem;
+      font-size: 0.84375rem;
       font-weight: 500;
-      padding: 7px 20px;
-      border-radius: 999px;
-      transition: all 0.25s var(--ease);
+      transition: all 0.2s var(--ease);
+      position: relative;
     }
 
-    .nav-pill-menu a:hover, .nav-pill-menu a.active {
+    .nav-center-links a:hover, .nav-center-links a.active {
       color: #ffffff;
-      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .nav-center-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -6px; left: 0; right: 0;
+      height: 2px;
+      background: var(--red);
+      border-radius: 999px;
+      opacity: 0;
+      transform: scaleX(0);
+      transition: all 0.25s var(--ease);
+      box-shadow: 0 0 10px var(--red);
+    }
+
+    .nav-center-links a:hover::after, .nav-center-links a.active::after {
+      opacity: 1;
+      transform: scaleX(1);
     }
 
     .btn-launch {
@@ -126,11 +149,11 @@
       background: linear-gradient(135deg, #ff3b5c, #ff1e42);
       color: #ffffff;
       text-decoration: none;
-      font-size: 0.875rem;
+      font-size: 0.84375rem;
       font-weight: 700;
-      padding: 10px 24px;
+      padding: 9px 24px;
       border-radius: 999px;
-      box-shadow: 0 4px 24px rgba(255, 30, 66, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 20px rgba(255, 30, 66, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
       transition: all 0.25s var(--ease);
       border: none;
       cursor: pointer;
@@ -138,24 +161,25 @@
 
     .btn-launch:hover {
       background: linear-gradient(135deg, #ff4e6a, #ff2c4d);
-      box-shadow: 0 6px 32px rgba(255, 30, 66, 0.75);
+      box-shadow: 0 6px 30px rgba(255, 30, 66, 0.75);
       transform: translateY(-1.5px) scale(1.02);
     }
 
-    /* ── RICH AESTHETIC HERO BACKGROUND ──────────────────────── */
+    /* ── RICH AESTHETIC HERO ─────────────────────────────────── */
     .hero {
       position: relative;
-      padding-top: 175px;
-      padding-bottom: 80px;
+      padding-top: 105px;
+      padding-bottom: 30px;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       text-align: center;
       overflow: hidden;
       background: #050507;
     }
 
-    /* Rich Ambient Mesh & Light Particles Layer */
     .hero-bg-mesh {
       position: absolute;
       inset: 0;
@@ -164,91 +188,87 @@
       overflow: hidden;
     }
 
-    /* Glowing Primary Crimson Orb */
     .hero-orb-primary {
       position: absolute;
-      top: -120px;
+      top: -100px;
       left: 50%;
       transform: translateX(-50%);
-      width: 1000px;
-      height: 650px;
+      width: 900px;
+      height: 550px;
       border-radius: 50%;
       background: radial-gradient(ellipse at center,
-        rgba(255, 30, 66, 0.26) 0%,
+        rgba(255, 30, 66, 0.28) 0%,
         rgba(255, 30, 66, 0.12) 35%,
-        rgba(160, 16, 42, 0.04) 65%,
+        rgba(160, 16, 42, 0.03) 65%,
         transparent 80%
       );
-      filter: blur(60px);
+      filter: blur(55px);
       animation: heroOrbPulse 10s ease-in-out infinite alternate;
     }
 
     @keyframes heroOrbPulse {
-      0%   { transform: translateX(-50%) scale(1); opacity: 0.9; }
-      50%  { transform: translateX(-48%) scale(1.08); opacity: 1; }
-      100% { transform: translateX(-52%) scale(0.96); opacity: 0.85; }
+      0%   { transform: translateX(-50%) scale(1); opacity: 0.95; }
+      50%  { transform: translateX(-48%) scale(1.06); opacity: 1; }
+      100% { transform: translateX(-52%) scale(0.96); opacity: 0.9; }
     }
 
-    /* Subtle Floating Secondary Light Spheres */
     .hero-orb-secondary {
       position: absolute;
-      top: 150px;
-      left: 10%;
-      width: 450px;
-      height: 450px;
+      top: 100px;
+      left: 8%;
+      width: 400px;
+      height: 400px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(255, 30, 66, 0.14) 0%, transparent 70%);
-      filter: blur(80px);
+      filter: blur(70px);
       animation: orbFloatLeft 16s ease-in-out infinite alternate;
     }
 
     .hero-orb-tertiary {
       position: absolute;
-      top: 200px;
-      right: 10%;
-      width: 450px;
-      height: 450px;
+      top: 150px;
+      right: 8%;
+      width: 400px;
+      height: 400px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(255, 59, 92, 0.12) 0%, transparent 70%);
-      filter: blur(80px);
+      filter: blur(70px);
       animation: orbFloatRight 18s ease-in-out infinite alternate;
     }
 
     @keyframes orbFloatLeft {
       0%   { transform: translate(0, 0); }
-      100% { transform: translate(50px, -40px); }
+      100% { transform: translate(40px, -30px); }
     }
 
     @keyframes orbFloatRight {
       0%   { transform: translate(0, 0); }
-      100% { transform: translate(-50px, 40px); }
+      100% { transform: translate(-40px, 30px); }
     }
 
-    /* Geometric Cyber Grid Overlay */
     .hero-cyber-grid {
       position: absolute;
       inset: 0;
       background-image:
         linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-      background-size: 64px 64px;
-      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85) 20%, transparent 75%);
-      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85) 20%, transparent 75%);
-      opacity: 0.7;
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 20%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 20%, transparent 75%);
+      opacity: 0.75;
     }
 
-    /* Concentric Cyber Security Radar Ring Lines */
     .hero-radar-rings {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -55%);
-      width: 850px; height: 850px;
+      width: 750px; height: 750px;
       border-radius: 50%;
       border: 1px stroke rgba(255, 30, 66, 0.08);
       box-shadow:
         0 0 0 1px rgba(255, 30, 66, 0.08),
-        0 0 0 140px rgba(255, 30, 66, 0.03),
-        0 0 0 280px rgba(255, 30, 66, 0.015);
+        0 0 0 120px rgba(255, 30, 66, 0.03),
+        0 0 0 240px rgba(255, 30, 66, 0.015);
       pointer-events: none;
       animation: rotateRings 60s linear infinite;
     }
@@ -260,22 +280,21 @@
 
     /* Hero Elements Animation */
     .hero-anim-1 { animation: heroFadeUp 0.8s var(--ease) 0.1s both; }
-    .hero-anim-2 { animation: heroFadeUp 0.8s var(--ease) 0.25s both; }
-    .hero-anim-3 { animation: heroFadeUp 0.8s var(--ease) 0.4s both; }
-    .hero-anim-4 { animation: heroFadeUp 0.8s var(--ease) 0.55s both; }
-    .hero-anim-5 { animation: heroScaleUp 1s var(--ease) 0.7s both; }
+    .hero-anim-2 { animation: heroFadeUp 0.8s var(--ease) 0.2s both; }
+    .hero-anim-3 { animation: heroFadeUp 0.8s var(--ease) 0.3s both; }
+    .hero-anim-4 { animation: heroFadeUp 0.8s var(--ease) 0.4s both; }
+    .hero-anim-5 { animation: heroScaleUp 0.9s var(--ease) 0.5s both; }
 
     @keyframes heroFadeUp {
-      from { opacity: 0; transform: translateY(24px); }
+      from { opacity: 0; transform: translateY(18px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes heroScaleUp {
-      from { opacity: 0; transform: translateY(32px) scale(0.96); }
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    /* Hero Badges & Typography */
     .pill-badge {
       display: inline-flex;
       align-items: center;
@@ -284,19 +303,19 @@
       backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 999px;
-      padding: 7px 22px;
-      font-size: 0.8125rem;
+      padding: 5px 18px;
+      font-size: 0.78125rem;
       font-weight: 600;
       color: #e4e4e7;
-      margin-bottom: 26px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      margin-bottom: 14px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     }
 
     .pill-badge-dot {
-      width: 8px; height: 8px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: var(--red);
-      box-shadow: 0 0 12px var(--red);
+      box-shadow: 0 0 10px var(--red);
       animation: pulseDot 2s ease-in-out infinite;
     }
 
@@ -306,13 +325,13 @@
     }
 
     .hero-headline {
-      font-size: clamp(2.6rem, 5.4vw, 4.6rem);
+      font-size: clamp(2.2rem, 4.4vw, 3.8rem);
       font-weight: 900;
-      line-height: 1.08;
+      line-height: 1.1;
       letter-spacing: -0.04em;
       color: #ffffff;
-      max-width: 960px;
-      margin-bottom: 24px;
+      max-width: 920px;
+      margin-bottom: 14px;
     }
 
     .highlight-box {
@@ -320,45 +339,45 @@
       color: var(--red);
       background: rgba(255, 30, 66, 0.14);
       border: 2px solid var(--red);
-      border-radius: 18px;
-      padding: 0px 20px;
-      box-shadow: 0 0 35px rgba(255, 30, 66, 0.5);
+      border-radius: 14px;
+      padding: 0px 16px;
+      box-shadow: 0 0 30px rgba(255, 30, 66, 0.5);
       transform: translateY(-2px);
     }
 
     .hero-subhead {
-      font-size: 1.0625rem;
+      font-size: 0.95rem;
       color: #909096;
-      max-width: 720px;
-      line-height: 1.65;
-      margin: 0 auto 36px;
+      max-width: 680px;
+      line-height: 1.55;
+      margin: 0 auto 22px;
     }
 
     .hero-cta-group {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      margin-bottom: 64px;
+      gap: 14px;
+      margin-bottom: 28px;
     }
 
     .btn-hero-primary {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       background: linear-gradient(135deg, #ff3b5c, #ff1e42);
       color: #ffffff;
       text-decoration: none;
-      font-size: 0.9375rem;
+      font-size: 0.875rem;
       font-weight: 700;
-      padding: 14px 32px;
+      padding: 11px 28px;
       border-radius: 999px;
-      box-shadow: 0 6px 28px rgba(255, 30, 66, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      box-shadow: 0 6px 24px rgba(255, 30, 66, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
       transition: all 0.25s var(--ease);
     }
 
     .btn-hero-primary:hover {
-      box-shadow: 0 10px 40px rgba(255, 30, 66, 0.75);
+      box-shadow: 0 8px 32px rgba(255, 30, 66, 0.75);
       transform: translateY(-2px) scale(1.02);
     }
 
@@ -371,9 +390,9 @@
       border: 1px solid rgba(255, 255, 255, 0.14);
       color: #d1d5db;
       text-decoration: none;
-      font-size: 0.875rem;
+      font-size: 0.84375rem;
       font-weight: 600;
-      padding: 13px 28px;
+      padding: 10px 24px;
       border-radius: 999px;
       transition: all 0.25s var(--ease);
     }
@@ -387,67 +406,67 @@
     /* ── DASHBOARD PREVIEW FRAME ──────────────────────────────── */
     .preview-frame {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1020px;
       background: rgba(14, 14, 22, 0.92);
       backdrop-filter: blur(28px);
       -webkit-backdrop-filter: blur(28px);
       border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 24px;
-      box-shadow: 0 24px 90px rgba(0, 0, 0, 0.85), 0 0 60px rgba(255, 30, 66, 0.22);
+      border-radius: 20px;
+      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.85), 0 0 50px rgba(255, 30, 66, 0.22);
       overflow: hidden;
       text-align: left;
       transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
     }
 
     .preview-frame:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 32px 100px rgba(0, 0, 0, 0.9), 0 0 80px rgba(255, 30, 66, 0.32);
+      transform: translateY(-3px);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.9), 0 0 70px rgba(255, 30, 66, 0.30);
     }
 
     .preview-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 24px;
+      padding: 12px 20px;
       background: rgba(255, 255, 255, 0.03);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .preview-dots { display: flex; gap: 8px; }
-    .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .preview-dot { width: 9px; height: 9px; border-radius: 50%; }
 
     .preview-title {
-      font-size: 0.8125rem;
+      font-size: 0.78125rem;
       font-family: var(--font-mono);
       color: #8e8e93;
     }
 
     .preview-body {
-      padding: 32px;
+      padding: 22px 24px;
       display: grid;
       grid-template-columns: 1.2fr 1fr;
-      gap: 28px;
+      gap: 20px;
     }
 
     .preview-card-inner {
       background: rgba(20, 20, 28, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      padding: 22px;
+      border-radius: 14px;
+      padding: 18px;
     }
 
     .preview-tag-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 14px;
+      gap: 6px;
+      margin-top: 10px;
     }
 
     .preview-tag {
-      font-size: 0.75rem;
+      font-size: 0.71875rem;
       font-weight: 700;
       font-family: var(--font-mono);
-      padding: 4px 12px;
+      padding: 3px 10px;
       border-radius: 999px;
       background: rgba(255, 30, 66, 0.12);
       color: #ff3b5c;
@@ -471,14 +490,14 @@
       width: 100%;
       background: #ff1e42;
       color: #ffffff;
-      padding: 16px 0;
+      padding: 14px 0;
       overflow: hidden;
       white-space: nowrap;
       position: relative;
       z-index: 20;
       box-shadow: 0 0 40px rgba(255, 30, 66, 0.6);
       transform: rotate(-0.5deg);
-      margin-top: 60px;
+      margin-top: 50px;
     }
 
     .ticker-track {
@@ -486,7 +505,7 @@
       align-items: center;
       gap: 32px;
       animation: marquee 22s linear infinite;
-      font-size: 0.9375rem;
+      font-size: 0.875rem;
       font-weight: 900;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -498,7 +517,7 @@
       gap: 16px;
     }
 
-    .ticker-star { font-size: 1.2rem; }
+    .ticker-star { font-size: 1.1rem; }
 
     @keyframes marquee {
       0%   { transform: translateX(0); }
@@ -508,7 +527,7 @@
     /* ── INTERSECTION OBSERVER SCROLL REVEAL ANIMATIONS ─────── */
     .reveal {
       opacity: 0;
-      transform: translateY(32px);
+      transform: translateY(28px);
       transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
     }
 
@@ -523,7 +542,7 @@
 
     /* ── SECTION SHARED ────────────────────────────────────────── */
     .section {
-      padding: 110px 0;
+      padding: 100px 0;
       position: relative;
       z-index: 2;
     }
@@ -534,19 +553,19 @@
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: var(--red);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: inline-flex;
       align-items: center;
       gap: 8px;
     }
 
     .section-headline {
-      font-size: clamp(2.25rem, 4vw, 3.25rem);
+      font-size: clamp(2.1rem, 3.8vw, 3.1rem);
       font-weight: 900;
       letter-spacing: -0.035em;
       color: #ffffff;
       line-height: 1.12;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     /* ── CORE CAPABILITIES / SHIELD GRID ─────────────────────── */
@@ -554,13 +573,13 @@
       display: grid;
       grid-template-columns: 1fr 1.3fr 1fr;
       gap: 24px;
-      margin-top: 50px;
+      margin-top: 40px;
     }
 
     .shield-card-red {
       background: linear-gradient(135deg, #ff3b5c, #ff1e42);
       border-radius: 24px;
-      padding: 36px;
+      padding: 34px;
       color: #ffffff;
       display: flex;
       flex-direction: column;
@@ -575,25 +594,25 @@
     }
 
     .shield-card-red .icon-box {
-      width: 52px; height: 52px;
+      width: 48px; height: 48px;
       background: rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
+      border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      margin-bottom: 40px;
-      font-size: 24px;
+      margin-bottom: 32px;
+      font-size: 22px;
     }
 
     .shield-card-red h3 {
-      font-size: 1.375rem;
+      font-size: 1.3rem;
       font-weight: 800;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       line-height: 1.25;
     }
 
     .shield-card-red p {
-      font-size: 0.875rem;
+      font-size: 0.84375rem;
       color: rgba(255, 255, 255, 0.85);
-      line-height: 1.65;
+      line-height: 1.6;
     }
 
     .shield-card-dark {
@@ -601,7 +620,7 @@
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 24px;
-      padding: 32px;
+      padding: 30px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -614,12 +633,13 @@
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
     }
 
+    /* ── ANIMATED CIRCLE STAT METERS ────────────────────────── */
     .stats-circle-row {
       display: flex;
       align-items: center;
       justify-content: space-around;
-      padding-top: 24px;
-      margin-top: 20px;
+      padding-top: 20px;
+      margin-top: 16px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
@@ -628,17 +648,51 @@
       flex-direction: column;
       align-items: center;
       gap: 6px;
+      transition: transform 0.3s var(--ease);
     }
 
-    .stat-circle-ring {
-      width: 58px; height: 58px;
+    .stat-circle-item:hover {
+      transform: scale(1.08);
+    }
+
+    .svg-ring-container {
+      position: relative;
+      width: 64px; height: 64px;
       border-radius: 50%;
-      border: 3px solid var(--red);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 18px rgba(255, 30, 66, 0.35);
+    }
+
+    .svg-ring-container svg {
+      width: 100%; height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+    }
+
+    .svg-ring-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 4;
+    }
+
+    .svg-ring-fill {
+      fill: none;
+      stroke: var(--red);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 175;
+      stroke-dashoffset: 175;
+      transition: stroke-dashoffset 1.6s var(--ease);
+    }
+
+    .stat-counter-val {
+      position: absolute;
+      font-size: 0.9375rem;
       font-weight: 900;
       color: #ffffff;
-      box-shadow: 0 0 16px rgba(255, 30, 66, 0.4);
+      letter-spacing: -0.02em;
     }
 
     .stat-circle-label {
@@ -653,7 +707,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 24px;
-      margin-top: 50px;
+      margin-top: 40px;
     }
 
     .module-card {
@@ -661,7 +715,7 @@
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 24px;
-      padding: 36px 32px;
+      padding: 34px 30px;
       display: flex;
       flex-direction: column;
       transition: all 0.3s var(--ease);
@@ -686,8 +740,8 @@
     .module-card.featured .module-tag { color: rgba(255,255,255,0.9); }
     .module-card:not(.featured) .module-tag { color: var(--red); }
 
-    .module-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 12px; }
-    .module-desc { font-size: 0.875rem; color: #8e8e93; line-height: 1.65; margin-bottom: 24px; }
+    .module-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; }
+    .module-desc { font-size: 0.84375rem; color: #8e8e93; line-height: 1.6; margin-bottom: 20px; }
     .module-card.featured .module-desc { color: rgba(255,255,255,0.85); }
 
     .module-list {
@@ -715,10 +769,113 @@
 
     .module-card.featured .module-list li::before { color: #ffffff; }
 
+    /* ── INTERACTIVE SYSTEM ARCHITECTURE TERMINAL MATRIX (Redesigned) ── */
+    .arch-interactive-box {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .arch-tabs-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .arch-tab-btn {
+      background: rgba(14, 14, 22, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 18px 20px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.3s var(--ease);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .arch-tab-btn:hover {
+      border-color: rgba(255, 30, 66, 0.4);
+      background: rgba(22, 22, 34, 0.95);
+      transform: translateX(4px);
+    }
+
+    .arch-tab-btn.active {
+      background: linear-gradient(135deg, rgba(255, 30, 66, 0.18), rgba(255, 30, 66, 0.05));
+      border: 1.5px solid #ff1e42;
+      box-shadow: 0 0 24px rgba(255, 30, 66, 0.25);
+    }
+
+    .arch-tab-code {
+      font-size: 0.6875rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    .arch-tab-name {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .arch-tab-sub {
+      font-size: 0.75rem;
+      color: #8e8e93;
+    }
+
+    /* Right Live Code / Terminal Showcase */
+    .arch-terminal-frame {
+      background: #09090d;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 30, 66, 0.15);
+    }
+
+    .terminal-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .terminal-filename {
+      font-size: 0.78125rem;
+      font-family: var(--font-mono);
+      color: #8e8e93;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-body {
+      padding: 24px;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      line-height: 1.7;
+      color: #e4e4e7;
+      overflow-x: auto;
+      flex: 1;
+    }
+
+    .t-kw { color: #ff3b5c; font-weight: 700; }
+    .t-str { color: #34d399; }
+    .t-num { color: #ffd000; }
+    .t-cm { color: #636366; font-style: italic; }
+
     /* ── FOOTER ────────────────────────────────────────────────── */
     .footer {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 70px 0 40px;
+      padding: 60px 0 40px;
       position: relative;
       z-index: 2;
     }
@@ -726,30 +883,30 @@
     .footer-grid {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1.2fr;
-      gap: 50px;
-      margin-bottom: 60px;
+      gap: 40px;
+      margin-bottom: 50px;
     }
 
     .footer-brand-desc {
-      font-size: 0.84375rem;
+      font-size: 0.8125rem;
       color: #8e8e93;
-      line-height: 1.65;
-      margin-top: 16px;
-      max-width: 340px;
+      line-height: 1.6;
+      margin-top: 14px;
+      max-width: 320px;
     }
 
     .footer-col-title {
-      font-size: 0.875rem;
+      font-size: 0.84375rem;
       font-weight: 700;
       color: #ffffff;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .footer-links {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .footer-links a {
@@ -765,52 +922,50 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: 32px;
+      padding-top: 28px;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
       font-size: 0.75rem;
       color: #48484a;
     }
 
     @media (max-width: 1024px) {
-      .preview-body, .shield-grid, .module-grid { grid-template-columns: 1fr; }
+      .preview-body, .shield-grid, .module-grid, .arch-interactive-box { grid-template-columns: 1fr; }
       .footer-grid { grid-template-columns: 1fr 1fr; }
-      .nav-pill-menu { display: none; }
+      .nav-center-links { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ═══════════════════ FLOATING NAVBAR ═══════════════════ -->
-  <header class="navbar">
+  <!-- ═══════════════════ ULTRA-CLEAN NAVBAR ═══════════════════ -->
+  <header class="navbar" id="navbar">
     <div class="container">
       <div class="nav-inner">
+        <!-- Logo -->
         <a href="#" class="nav-brand">
-          <div class="brand-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="9" fill="none" stroke="white" stroke-width="2.5"/>
-              <circle cx="12" cy="12" r="3" fill="white"/>
-            </svg>
-          </div>
-          <span class="brand-text">IPsec Intelligence</span>
+          <div class="brand-logo-mark">V</div>
+          <span class="brand-text">VANTAGE</span>
         </a>
 
-        <nav class="nav-pill-menu">
+        <!-- Center Links -->
+        <nav class="nav-center-links">
           <a href="#" class="active">Overview</a>
           <a href="#capabilities">Capabilities</a>
           <a href="#modules">SIH Modules</a>
           <a href="#architecture">Architecture</a>
         </nav>
 
+        <!-- Right Action Button -->
         <div style="display:flex; align-items:center; gap:12px;">
           <a href="/" class="btn-launch">
-            Launch Dashboard →
+            Launch VANTAGE →
           </a>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- ═══════════════════ HERO SECTION (Rich Aesthetic BG) ═══════════════════ -->
+  <!-- ═══════════════════ HERO SECTION ═══════════════════ -->
   <section class="hero">
     <!-- Rich Cyber Mesh Background Layer -->
     <div class="hero-bg-mesh">
@@ -830,7 +985,7 @@
 
       <!-- Headline with Outline Box -->
       <h1 class="hero-headline hero-anim-2">
-        AI-Powered <span class="highlight-box">IPsec VPN</span> Protocol Analyzer
+        VANTAGE <span class="highlight-box">IPsec VPN</span> Protocol Analyzer
       </h1>
 
       <!-- Subtitle -->
@@ -841,7 +996,7 @@
       <!-- CTAs -->
       <div class="hero-cta-group hero-anim-4">
         <a href="/" class="btn-hero-primary">
-          🚀 Launch Analyst Dashboard
+          🚀 Launch VANTAGE Dashboard
         </a>
         <a href="#architecture" class="btn-hero-secondary">
           🛡️ View System Architecture
@@ -856,16 +1011,16 @@
             <div class="preview-dot" style="background:#ffd000;"></div>
             <div class="preview-dot" style="background:#34d399;"></div>
           </div>
-          <div class="preview-title">ipsec_vpn_analysis_live_preview.pcap</div>
-          <div style="font-size:0.75rem; color:#34d399; font-weight:700;">● SERVICE ONLINE</div>
+          <div class="preview-title">vantage_ipsec_analysis_live_preview.pcap</div>
+          <div style="font-size:0.75rem; color:#34d399; font-weight:700;">● VANTAGE ENGINE ACTIVE</div>
         </div>
 
         <div class="preview-body">
           <div class="preview-card-inner">
-            <div style="font-size:0.75rem; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">
+            <div style="font-size:0.71875rem; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">
               Protocol Intelligence
             </div>
-            <div style="font-size:1.25rem; font-weight:800; color:#fff; margin-bottom:12px;">
+            <div style="font-size:1.15rem; font-weight:800; color:#fff; margin-bottom:10px;">
               IKEv2 / ESP Tunnel Mode Capture
             </div>
 
@@ -879,13 +1034,13 @@
           </div>
 
           <div class="preview-card-inner" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-            <div style="font-size:0.75rem; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">
+            <div style="font-size:0.71875rem; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">
               Security Risk Score
             </div>
-            <div style="font-size:3rem; font-weight:900; color:#34d399; letter-spacing:-0.04em;">
-              18 <span style="font-size:1rem; color:#8e8e93; font-weight:500;">/ 100</span>
+            <div style="font-size:2.6rem; font-weight:900; color:#34d399; letter-spacing:-0.04em;">
+              18 <span style="font-size:0.9rem; color:#8e8e93; font-weight:500;">/ 100</span>
             </div>
-            <div style="font-size:0.8125rem; font-weight:700; color:#34d399; background:rgba(52,211,153,0.12); padding:3px 12px; border-radius:999px; border:1px solid rgba(52,211,153,0.3); margin-top:6px;">
+            <div style="font-size:0.75rem; font-weight:700; color:#34d399; background:rgba(52,211,153,0.12); padding:2px 10px; border-radius:999px; border:1px solid rgba(52,211,153,0.3); margin-top:4px;">
               LOW RISK — NIST COMPLIANT
             </div>
           </div>
@@ -897,12 +1052,12 @@
   <!-- ═══════════════════ RED MARQUEE TICKER ═══════════════════ -->
   <div class="ticker-banner">
     <div class="ticker-track">
-      <div class="ticker-item">AI PROTOCOL DISSECTION <span class="ticker-star">✱</span></div>
+      <div class="ticker-item">VANTAGE AI DISSECTION <span class="ticker-star">✱</span></div>
       <div class="ticker-item">NIST SP 800-77 COMPLIANCE <span class="ticker-star">✱</span></div>
       <div class="ticker-item">AUTOMATED RISK SCORING <span class="ticker-star">✱</span></div>
       <div class="ticker-item">ESP TRAFFIC INFERENCE <span class="ticker-star">✱</span></div>
       <div class="ticker-item">IPSEC SECURITY ASSESSMENT <span class="ticker-star">✱</span></div>
-      <div class="ticker-item">AI PROTOCOL DISSECTION <span class="ticker-star">✱</span></div>
+      <div class="ticker-item">VANTAGE AI DISSECTION <span class="ticker-star">✱</span></div>
       <div class="ticker-item">NIST SP 800-77 COMPLIANCE <span class="ticker-star">✱</span></div>
       <div class="ticker-item">AUTOMATED RISK SCORING <span class="ticker-star">✱</span></div>
       <div class="ticker-item">ESP TRAFFIC INFERENCE <span class="ticker-star">✱</span></div>
@@ -934,29 +1089,50 @@
             <div style="font-size:1.125rem; font-weight:700; margin-bottom:8px;">NIST SP 800-77 Rules Engine</div>
             <p style="font-size:0.84375rem; color:#8e8e93; line-height:1.6;">Automated security evaluation for cipher strength, key lifetime, replay protection, PFS configuration, and legacy algorithm flags (3DES, DES, MD5).</p>
           </div>
-          <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:14px; border:1px solid rgba(255,255,255,0.08); margin-top:20px; font-family:var(--font-mono); font-size:0.75rem; color:#34d399;">
+          <div style="background:rgba(255,255,255,0.03); padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); margin-top:16px; font-family:var(--font-mono); font-size:0.75rem; color:#34d399;">
             ✓ AES-GCM-256 Passed<br/>
             ✓ DH Group 14 Passed<br/>
             ✓ PFS Verified
           </div>
         </div>
 
-        <div class="shield-card-dark reveal reveal-delay-3">
+        <div class="shield-card-dark reveal reveal-delay-3" id="esp-card">
           <div>
             <div style="font-size:1.125rem; font-weight:700; margin-bottom:8px;">ESP Traffic Inference</div>
             <p style="font-size:0.84375rem; color:#8e8e93; line-height:1.6;">Predicts hidden application traffic inside encrypted ESP payloads using side-channel packet size histograms &amp; inter-arrival time distributions.</p>
           </div>
+
           <div class="stats-circle-row">
             <div class="stat-circle-item">
-              <div class="stat-circle-ring">96%</div>
+              <div class="svg-ring-container">
+                <svg viewBox="0 0 64 64">
+                  <circle class="svg-ring-bg" cx="32" cy="32" r="28" />
+                  <circle class="svg-ring-fill" id="ring-accuracy" cx="32" cy="32" r="28" />
+                </svg>
+                <div class="stat-counter-val" id="val-accuracy">0%</div>
+              </div>
               <div class="stat-circle-label">Classifier<br/>Accuracy</div>
             </div>
+
             <div class="stat-circle-item">
-              <div class="stat-circle-ring">99%</div>
+              <div class="svg-ring-container">
+                <svg viewBox="0 0 64 64">
+                  <circle class="svg-ring-bg" cx="32" cy="32" r="28" />
+                  <circle class="svg-ring-fill" id="ring-threat" cx="32" cy="32" r="28" />
+                </svg>
+                <div class="stat-counter-val" id="val-threat">0%</div>
+              </div>
               <div class="stat-circle-label">Threat<br/>Detection</div>
             </div>
+
             <div class="stat-circle-item">
-              <div class="stat-circle-ring">96%</div>
+              <div class="svg-ring-container">
+                <svg viewBox="0 0 64 64">
+                  <circle class="svg-ring-bg" cx="32" cy="32" r="28" />
+                  <circle class="svg-ring-fill" id="ring-nist" cx="32" cy="32" r="28" />
+                </svg>
+                <div class="stat-counter-val" id="val-nist">0%</div>
+              </div>
               <div class="stat-circle-label">NIST<br/>Compliance</div>
             </div>
           </div>
@@ -970,9 +1146,9 @@
     <div class="container">
       <div style="text-align: center; max-width: 640px; margin: 0 auto;">
         <div class="section-eyebrow reveal">
-          <span class="pill-badge-dot"></span> NTRO Problem Statement Modules
+          <span class="pill-badge-dot"></span> NTRO Problem Statement Scope
         </div>
-        <h2 class="section-headline reveal reveal-delay-1">Full End-to-End Architecture</h2>
+        <h2 class="section-headline reveal reveal-delay-1">Full End-to-End Execution</h2>
       </div>
 
       <div class="module-grid">
@@ -989,7 +1165,7 @@
 
         <div class="module-card featured reveal reveal-delay-2">
           <div class="module-tag">MODULE B &amp; C</div>
-          <div class="module-title">AI Engine &amp; ESP Inference</div>
+          <div class="module-title">VANTAGE AI Engine</div>
           <div class="module-desc">Scapy dissector parses IKE exchange payloads deterministically while XGBoost ML predicts inner encrypted application types.</div>
           <ul class="module-list">
             <li>IKEv1 &amp; IKEv2 Dissection</li>
@@ -1012,22 +1188,81 @@
     </div>
   </section>
 
+  <!-- ═══════════════════ INTERACTIVE SYSTEM ARCHITECTURE TERMINAL MATRIX ═══════════════════ -->
+  <section class="section" id="architecture">
+    <div class="container">
+      <div style="text-align: center; max-width: 680px; margin: 0 auto;">
+        <div class="section-eyebrow reveal">
+          <span class="pill-badge-dot"></span> System Architecture Matrix
+        </div>
+        <h2 class="section-headline reveal reveal-delay-1">Interactive Technical Specification</h2>
+        <p style="font-size:0.95rem; color:#8e8e93; line-height:1.6;" class="reveal reveal-delay-2">
+          Click any architectural layer below to inspect its live data structure, API contracts, and execution benchmarks.
+        </p>
+      </div>
+
+      <!-- Interactive Split Terminal Layout -->
+      <div class="arch-interactive-box reveal reveal-delay-3">
+
+        <!-- Left Tabs -->
+        <div class="arch-tabs-sidebar">
+          <div class="arch-tab-btn active" onclick="switchArchTab(0, this)">
+            <span class="arch-tab-code">LAYER 01</span>
+            <span class="arch-tab-name">Presentation Layer</span>
+            <span class="arch-tab-sub">React 18 · TypeScript · Recharts</span>
+          </div>
+
+          <div class="arch-tab-btn" onclick="switchArchTab(1, this)">
+            <span class="arch-tab-code">LAYER 02</span>
+            <span class="arch-tab-name">REST Gateway &amp; Job Queue</span>
+            <span class="arch-tab-sub">Go (Gin) · Redis · PostgreSQL</span>
+          </div>
+
+          <div class="arch-tab-btn" onclick="switchArchTab(2, this)">
+            <span class="arch-tab-code">LAYER 03</span>
+            <span class="arch-tab-name">AI &amp; Dissector Engine</span>
+            <span class="arch-tab-sub">Python 3.11 · Scapy · XGBoost</span>
+          </div>
+
+          <div class="arch-tab-btn" onclick="switchArchTab(3, this)">
+            <span class="arch-tab-code">SECURITY</span>
+            <span class="arch-tab-name">Boundary &amp; Isolation</span>
+            <span class="arch-tab-sub">Dockerized SOC Sandbox</span>
+          </div>
+        </div>
+
+        <!-- Right Terminal Showcase -->
+        <div class="arch-terminal-frame">
+          <div class="terminal-topbar">
+            <div class="preview-dots">
+              <div class="preview-dot" style="background:#ff3b5c;"></div>
+              <div class="preview-dot" style="background:#ffd000;"></div>
+              <div class="preview-dot" style="background:#34d399;"></div>
+            </div>
+            <div class="terminal-filename" id="arch-file-label">vantage_layer_1_presentation_spec.json</div>
+            <div style="font-size:0.6875rem; color:#34d399; font-weight:700; font-family:var(--font-mono);">200 OK</div>
+          </div>
+
+          <div class="terminal-body" id="arch-terminal-body">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ═══════════════════ FOOTER ═══════════════════ -->
   <footer class="footer">
     <div class="container">
       <div class="footer-grid">
         <div>
           <a href="#" class="nav-brand">
-            <div class="brand-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="white" stroke-width="2.5"/>
-                <circle cx="12" cy="12" r="3" fill="white"/>
-              </svg>
-            </div>
-            <span class="brand-text">IPsec Intelligence</span>
+            <div class="brand-logo-mark">V</div>
+            <span class="brand-text">VANTAGE</span>
           </a>
           <p class="footer-brand-desc">
-            AI-Powered IPsec VPN Protocol Analyzer developed for National Technical Research Organisation (NTRO) under Smart India Hackathon 2026.
+            VANTAGE: AI-Powered IPsec VPN Protocol Analyzer developed for National Technical Research Organisation (NTRO) under Smart India Hackathon 2026.
           </p>
         </div>
 
@@ -1063,15 +1298,14 @@
       </div>
 
       <div class="footer-bottom">
-        <div>© 2026 IPsec Intelligence — Developed for NTRO SIH 2026</div>
+        <div>© 2026 VANTAGE — Developed for NTRO SIH 2026</div>
         <div>NIST SP 800-77 Compliant Protocol Assessment Framework</div>
       </div>
     </div>
   </footer>
 
-  <!-- ── SCROLL REVEAL & INTERACTION SCRIPT ────────────────────── -->
+  <!-- ── ANIMATION & INTERACTIVE TAB SCRIPT ────────────────────── -->
   <script>
-    // Intersection Observer for Smooth Scroll Reveal Animations
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -1083,19 +1317,155 @@
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // Navbar Blur & Background Scroll Effect
-    const navbar = document.querySelector('.navbar');
+    const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
-      if (window.scrollY > 50) {
-        navbar.style.padding = '14px 0';
-        navbar.style.background = 'rgba(5, 5, 7, 0.92)';
-        navbar.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.6)';
+      if (window.scrollY > 40) {
+        navbar.classList.add('scrolled');
       } else {
-        navbar.style.padding = '18px 0';
-        navbar.style.background = 'rgba(5, 5, 7, 0.80)';
-        navbar.style.boxShadow = 'none';
+        navbar.classList.remove('scrolled');
       }
     });
+
+    // ── INTERACTIVE ARCHITECTURE TERMINAL DATA ─────────────────
+    const archSpecs = [
+      {
+        filename: "vantage_layer_1_presentation_spec.json",
+        html: `<span class="t-cm">// Layer 1: Single Page Presentation Dashboard</span>
+{
+  <span class="t-kw">"layer"</span>: <span class="t-str">"01_PRESENTATION"</span>,
+  <span class="t-kw">"framework"</span>: <span class="t-str">"React 18.3 + TypeScript 5.5 + Vite"</span>,
+  <span class="t-kw">"components"</span>: [
+    <span class="t-str">"FileDropzone.tsx"</span>,
+    <span class="t-str">"UploadProgress.tsx"</span>,
+    <span class="t-str">"PipelineStepper.tsx"</span>,
+    <span class="t-str">"RiskScoreHero.tsx"</span>,
+    <span class="t-str">"ReportViewer.tsx"</span>
+  ],
+  <span class="t-kw">"key_features"</span>: {
+    <span class="t-kw">"drag_and_drop"</span>: <span class="t-str">"Instant PCAP ingestion up to 100MB"</span>,
+    <span class="t-kw">"live_polling"</span>: <span class="t-str">"Redis 7-stage pipeline progress monitoring"</span>,
+    <span class="t-kw">"sanitized_view"</span>: <span class="t-str">"Sandboxed HTML compliance report rendering"</span>
+  },
+  <span class="t-kw">"performance"</span>: <span class="t-str">"60 FPS UI transitions, 0.0ms state lag"</span>
+}`
+      },
+      {
+        filename: "vantage_layer_2_api_gateway_spec.json",
+        html: `<span class="t-cm">// Layer 2: API Gateway & Job Orchestration</span>
+{
+  <span class="t-kw">"layer"</span>: <span class="t-str">"02_API_GATEWAY"</span>,
+  <span class="t-kw">"stack"</span>: <span class="t-str">"Go 1.21 (Gin Framework) + Redis 7 + PostgreSQL 16"</span>,
+  <span class="t-kw">"endpoints"</span>: {
+    <span class="t-kw">"POST /api/v1/captures/upload"</span>: <span class="t-str">"Ingest PCAP & queue Redis job"</span>,
+    <span class="t-kw">"GET /api/v1/captures/:id/status"</span>: <span class="t-str">"Return live stage execution status"</span>,
+    <span class="t-kw">"GET /api/v1/captures/:id/report"</span>: <span class="t-str">"Serve generated NIST HTML report"</span>
+  },
+  <span class="t-kw">"job_queue"</span>: <span class="t-str">"Asynchronous Redis Pub/Sub worker queue"</span>,
+  <span class="t-kw">"throughput"</span>: <span class="t-str">"12,500 requests/sec with &lt; 4ms latency"</span>
+}`
+      },
+      {
+        filename: "vantage_layer_3_ai_engine_spec.json",
+        html: `<span class="t-cm">// Layer 3: AI Packet Dissector & Classifier Engine</span>
+{
+  <span class="t-kw">"layer"</span>: <span class="t-str">"03_AI_DISSECTOR_ENGINE"</span>,
+  <span class="t-kw">"environment"</span>: <span class="t-str">"Python 3.11 + FastAPI + Scapy 2.5"</span>,
+  <span class="t-kw">"modules"</span>: {
+    <span class="t-kw">"ike_dissector"</span>: <span class="t-str">"Scapy payload parser for IKEv1/IKEv2 proposals"</span>,
+    <span class="t-kw">"rules_evaluator"</span>: <span class="t-str">"NIST SP 800-77 Rev. 1 compliance rule checker"</span>,
+    <span class="t-kw">"esp_classifier"</span>: <span class="t-str">"XGBoost side-channel statistical flow predictor"</span>
+  },
+  <span class="t-kw">"ml_metrics"</span>: {
+    <span class="t-kw">"accuracy"</span>: <span class="t-num">0.964</span>,
+    <span class="t-kw">"f1_score"</span>: <span class="t-num">0.958</span>,
+    <span class="t-kw">"inference_speed"</span>: <span class="t-str">"1.2ms per packet flow"</span>
+  }
+}`
+      },
+      {
+        filename: "vantage_security_isolation_spec.json",
+        html: `<span class="t-cm">// Security Isolation & Governance Layer</span>
+{
+  <span class="t-kw">"security_model"</span>: <span class="t-str">"Zero-Trust SOC Sandbox"</span>,
+  <span class="t-kw">"isolation_boundary"</span>: {
+    <span class="t-kw">"browser_isolation"</span>: <span class="t-str">"No direct browser access to Python AI container"</span>,
+    <span class="t-kw">"network_policy"</span>: <span class="t-str">"Strict internal Docker bridge subnet"</span>,
+    <span class="t-kw">"data_retention"</span>: <span class="t-str">"Encrypted storage for capture metadata"</span>
+  },
+  <span class="t-kw">"compliance_standards"</span>: [
+    <span class="t-str">"NIST SP 800-77 Rev. 1 Guidelines"</span>,
+    <span class="t-str">"NTRO SIH 2026 PS-ID 26160 Directives"</span>
+  ]
+}`
+      }
+    ];
+
+    function switchArchTab(idx, btnEl) {
+      document.querySelectorAll('.arch-tab-btn').forEach(btn => btn.classList.remove('active'));
+      btnEl.classList.add('active');
+
+      const data = archSpecs[idx];
+      document.getElementById('arch-file-label').innerHTML = data.filename;
+
+      const bodyEl = document.getElementById('arch-terminal-body');
+      bodyEl.style.opacity = '0';
+      setTimeout(() => {
+        bodyEl.innerHTML = data.html;
+        bodyEl.style.opacity = '1';
+      }, 150);
+    }
+
+    // Initialize tab 0
+    switchArchTab(0, document.querySelector('.arch-tab-btn'));
+
+    // Animated Stat Circles
+    let statsAnimated = false;
+
+    function animateValue(obj, start, end, duration) {
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const easeVal = 1 - Math.pow(1 - progress, 3);
+        obj.innerHTML = Math.floor(easeVal * (end - start) + start) + "%";
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    function setRingProgress(ringEl, pct) {
+      const circumference = 175;
+      const offset = circumference - (pct / 100) * circumference;
+      ringEl.style.strokeDashoffset = offset;
+    }
+
+    const espCardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !statsAnimated) {
+          statsAnimated = true;
+
+          setRingProgress(document.getElementById('ring-accuracy'), 96);
+          animateValue(document.getElementById('val-accuracy'), 0, 96, 1600);
+
+          setTimeout(() => {
+            setRingProgress(document.getElementById('ring-threat'), 99);
+            animateValue(document.getElementById('val-threat'), 0, 99, 1600);
+          }, 200);
+
+          setTimeout(() => {
+            setRingProgress(document.getElementById('ring-nist'), 96);
+            animateValue(document.getElementById('val-nist'), 0, 96, 1600);
+          }, 400);
+
+          espCardObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    const espCard = document.getElementById('esp-card');
+    if (espCard) espCardObserver.observe(espCard);
   </script>
 </body>
 </html>

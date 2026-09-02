@@ -20,8 +20,7 @@ const navSections = [
   {
     title: 'Overview',
     items: [
-      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', end: false },
-      { to: '/landing', icon: Shield, label: 'Landing Page', end: false },
+      { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
       { to: '/captures', icon: FolderOpen, label: 'Capture History', end: false },
       { to: '/captures/new', icon: Upload, label: 'New Capture', end: false },
     ]
@@ -59,8 +58,8 @@ export function Sidebar({ onAnalyze }: SidebarProps) {
           <Shield size={18} color="#ffffff" strokeWidth={2.5} />
         </div>
         <div className="sidebar-logo-text">
-          <span className="sidebar-logo-title">IPsec Intelligence</span>
-          <span className="sidebar-logo-subtitle">Securify Shield</span>
+          <span className="sidebar-logo-title">VANTAGE</span>
+          <span className="sidebar-logo-subtitle">IPsec Protocol Intelligence</span>
         </div>
       </div>
 
