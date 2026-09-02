@@ -1,0 +1,29 @@
+{
+    "model_name": "Traffic Type Inference RF",
+    "model_version": "v1.0.0",
+    "model_type": "RandomForestClassifier",
+    "features": [
+        "total_packets",
+        "total_bytes",
+        "duration_seconds",
+        "bytes_per_second",
+        "packets_per_second",
+        "avg_packet_size",
+        "packet_size_variance",
+        "udp_ratio",
+        "tcp_ratio"
+    ],
+    "classes": [
+        "HTTP",
+        "ICMP",
+        "Unknown",
+        "VPN",
+        "Video",
+        "VoIP"
+    ],
+    "metrics": {
+        "accuracy": 0.9997222222222222,
+        "f1_macro": 0.9997290757767576
+    },
+    "training_samples": 8400
+}

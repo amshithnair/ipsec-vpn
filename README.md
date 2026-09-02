@@ -59,54 +59,44 @@ This platform provides automated, deep packet-level cryptographic visibility:
 
 ```mermaid
 flowchart TB
-    subgraph Host["Host Machine / Client Tier"]
-        UI["React 19 SPA (Vite + TypeScript)<br/><code>http://localhost:3000</code>"]
+    subgraph Client["Client Tier"]
+        UI["React 19 SPA (Vite + TypeScript)<br/>Port: 3000"]
     end
 
-    subgraph Docker["🐳 Docker Platform (Docker Compose Orchestration / Network: ipsecvpn-net)"]
-        subgraph BackendContainer["ipsecvpn-backend (Container)"]
-            API["Go 1.23 Gin API Gateway<br/>Exposed: :8080"]
-        end
-
-        subgraph AIContainer["ipsecvpn-ai-service (Container)"]
-            AI["Python 3.11 FastAPI Service<br/>Exposed: :8000"]
-            SCAP["Scapy PCAP Dissector"]
-            RE["Deterministic Rules Engine<br/>(NIST SP 800-77 / RFC 7296)"]
-            ML["ML Pipeline<br/>(Random Forest + Isolation Forest)"]
-            REP["Jinja2 Report Generator"]
-
-            AI --> SCAP
-            SCAP --> RE
-            SCAP --> ML
-            RE & ML --> REP
-        end
-
-        subgraph StorageContainers["Database & In-Memory Cache Containers"]
-            PG[("ipsecvpn-postgres (PostgreSQL 16)<br/>Port: 5432<br/>Volume: postgres_data")]
-            RD[("ipsecvpn-redis (Redis 7)<br/>Port: 6379<br/>Volume: redis_data")]
-        end
-
-        VOL[("📁 Shared Docker Bind Mounts<br/>./uploads (PCAP Storage) & ./rules (YAML Policies)")]
+    subgraph BackendTier["Backend Orchestration Tier"]
+        API["Go Gin API Gateway<br/>Port: 8080"]
+        PG[("PostgreSQL 16<br/>Port: 5432")]
+        RD[("Redis 7 Cache<br/>Port: 6379")]
     end
 
-    UI -->|"HTTP REST / Multipart Upload (:8080)"| API
-    API -->|"pgx Connection Pool"| PG
-    API -->|"go-redis Cache & Queue"| RD
-    API -->|"Internal Bridge HTTP (http://ai-service:8000)"| AI
-    AI -->|"Analysis & Risk Assessment"| API
-    BackendContainer -.->|"Read/Write"| VOL
-    AIContainer -.->|"Read/Write"| VOL
+    subgraph EngineTier["Analysis & ML Tier"]
+        AI["Python FastAPI Service<br/>Port: 8000"]
+        SCAP["Scapy PCAP Dissector"]
+        RE["Deterministic Rules Engine<br/>(NIST SP 800-77 / RFC 7296)"]
+        ML["ML Pipeline<br/>(Random Forest + Isolation Forest)"]
+        REP["Jinja2 Report Generator"]
+    end
+
+    UI -->|REST / Multipart Upload| API
+    API -->|Persist Metadata & State| PG
+    API -->|Session Cache & Jobs| RD
+    API -->|HTTP Proxy / Stream| AI
+    AI --> SCAP
+    SCAP --> RE
+    SCAP --> ML
+    RE & ML --> REP
+    AI -->|JSON Results + HTML Reports| API
 ```
 
-### Microservice & Container Breakdown
+### Microservice Breakdown
 
-| Service / Container | Docker Image / Base | Host Port | Internal Network | Purpose |
-| :--- | :--- | :--- | :--- | :--- |
-| **Frontend UI** | Node.js 20 / Vite | `3000` | Host / Proxy | Responsive SOC/NOC dashboard, packet timeline inspection, visual diff, and report generator. |
-| **`ipsecvpn-backend`** | `golang:1.23-alpine` (Multi-stage) | `8080` | `ipsecvpn-net` | Go Gin API gateway, job coordinator, relational storage queries, and AI service proxy. |
-| **`ipsecvpn-ai-service`** | `python:3.11-slim` + `libpcap` | `8000` | `ipsecvpn-net` | Protocol dissection via Scapy, NIST rules evaluation, Random Forest / Isolation Forest ML pipelines. |
-| **`ipsecvpn-postgres`** | `postgres:16-alpine` | `5432` | `ipsecvpn-net` | Relational storage for PCAP captures, findings, security assessments, and JSONB telemetry. |
-| **`ipsecvpn-redis`** | `redis:7-alpine` | `6379` | `ipsecvpn-net` | High-speed cache for job progression states, health checks, and analysis results. |
+| Service | Technology | Port | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Frontend** | React 19, TypeScript, Vite, Recharts, Lucide | `3000` | Responsive SOC/NOC dashboard, upload workbench, comparison viewer, report previewer. |
+| **Backend** | Go 1.23, Gin, pgx, go-redis | `8080` | High-throughput API gateway, job coordinator, relational persistence, and Redis caching. |
+| **AI Service** | Python 3.11, FastAPI, Scapy, scikit-learn, Jinja2 | `8000` | Protocol parsing, deterministic scoring, ML traffic classification, and HTML report compilation. |
+| **Database** | PostgreSQL 16 (Alpine) | `5432` | Relational storage for captures, analysis runs, security findings, and anomaly telemetry. |
+| **Cache** | Redis 7 (Alpine) | `6379` | Fast job status tracking, response caching, and rate limiting buffers. |
 
 ---
 

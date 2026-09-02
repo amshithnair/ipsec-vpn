@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS classification_results (
     raw_features      JSONB DEFAULT '{}',
     confidence_score  DECIMAL(5,4) DEFAULT 0,
     model_version     VARCHAR(50) DEFAULT 'rules-v1',
+    analysis_method   VARCHAR(50) DEFAULT 'Deterministic',
+    traffic_inference JSONB DEFAULT NULL,
     created_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -85,6 +87,23 @@ CREATE TABLE IF NOT EXISTS reports (
     generated_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     metadata        JSONB DEFAULT '{}',
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ── anomaly_results ──
+CREATE TABLE IF NOT EXISTS anomaly_results (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    capture_id          UUID NOT NULL REFERENCES captures(id) ON DELETE CASCADE,
+    anomaly_score       DECIMAL(5,2) DEFAULT 0,
+    is_anomalous        BOOLEAN DEFAULT FALSE,
+    severity            VARCHAR(20) NOT NULL DEFAULT 'LOW',
+    status              VARCHAR(50) NOT NULL DEFAULT 'EVALUATED',
+    explanation         TEXT,
+    contributing_signals JSONB DEFAULT '[]',
+    model_version       VARCHAR(50) DEFAULT 'if-v1.0.0',
+    algorithm           VARCHAR(100) DEFAULT 'Isolation Forest',
+    validation_status   VARCHAR(100) DEFAULT 'Development / Synthetic-Data Validated',
+    method_source       VARCHAR(50) DEFAULT 'ML_ANOMALY',
+    created_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ── Indexes ──

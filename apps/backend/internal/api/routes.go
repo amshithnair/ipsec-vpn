@@ -36,6 +36,25 @@ func RegisterRoutes(r *gin.Engine, h *handlers.Handler) {
 		// Security
 		v1.GET("/security/:id", h.GetSecurityAssessment)
 
+		// Behavioral Anomalies
+		v1.GET("/anomalies/:id", h.GetAnomalies)
+
+		// Security Posture
+		v1.GET("/posture", h.GetSecurityPosture)
+
+		// Remediation
+		v1.GET("/remediation", h.GetRemediations)
+
+		// Capture Comparison
+		v1.GET("/compare", h.CompareCaptures)
+
+		// Model Transparency Registry
+		v1.GET("/models", h.GetModelRegistry)
+		v1.GET("/models/:id", h.GetModelCard)
+
+		// Demo Lab
+		v1.GET("/demo/scenarios", h.GetDemoScenarios)
+
 		// Reports
 		reports := v1.Group("/reports")
 		{

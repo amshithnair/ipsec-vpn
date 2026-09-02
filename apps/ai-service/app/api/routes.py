@@ -16,12 +16,15 @@ from fastapi.responses import HTMLResponse
 from app.parser.pcap_parser import PcapParser
 from app.classifier.protocol_classifier import classify
 from app.scoring.rules_engine import RulesEngine
+from app.anomaly.detector import get_anomaly_detector
+from app.models.registry import get_all_models, get_model_card
 from app.reports.html_report import generate_html_report
 from app.models.schemas import (
     AnalysisResponse,
     ClassificationResult,
     CryptoAnalysis,
     SecurityAssessment,
+    AnomalyAssessment,
     ConfidenceInfo,
     AnalysisMetadata,
     ReportRequest,
@@ -44,7 +47,7 @@ async def analyze_pcap(
     capture_id: str = Form(default=""),
 ):
     """
-    Full analysis pipeline: parse → classify → score → return results.
+    Full analysis pipeline: parse → classify → anomaly detect → security score → return results.
     This is the primary endpoint called by the Go backend.
     """
     start_time = time.time()
@@ -75,23 +78,55 @@ async def analyze_pcap(
         if not parse_result.success:
             raise HTTPException(status_code=422, detail=f"PCAP parse error: {parse_result.error}")
 
-        # ── Step 2: Classify ──
+        # ── Step 2: Classify (Protocol & ML Traffic Inference) ──
         classification, crypto, class_conf, extract_comp, overall_conf = classify(parse_result)
 
-        # ── Step 3: Security Assessment ──
+        # ── Step 3: Behavioral Anomaly Detection ──
+        anomaly_detector = get_anomaly_detector()
+        anomaly_data = anomaly_detector.analyze(parse_result)
+        anomaly_assessment = AnomalyAssessment(**anomaly_data)
+
+        # ── Step 4: Security Assessment (Deterministic Rules) ──
         rules_engine = _get_rules_engine(request)
 
         # Determine replay protection from ESP sequence numbers
         replay_protection = None
         if parse_result.has_esp and parse_result.esp_info.sequence_numbers:
-            # If sequence numbers are strictly increasing, replay protection is likely enabled
             seqs = parse_result.esp_info.sequence_numbers
             if len(seqs) > 1:
                 replay_protection = all(seqs[i] < seqs[i + 1] for i in range(len(seqs) - 1))
 
         security = rules_engine.evaluate(classification, crypto, replay_protection)
 
-        # ── Step 4: Build response ──
+        # Integrate anomaly into security assessment risk scoring if anomalous
+        if anomaly_assessment.is_anomalous:
+            # Add anomaly finding with explicit ML_ANOMALY source
+            from app.models.schemas import Finding, Recommendation
+            anomaly_finding = Finding(
+                id="ANOMALY-BEHAVIOR-DETECTED",
+                category="behavioral",
+                severity=anomaly_assessment.severity,
+                title="Statistical Behavioral Anomaly Detected",
+                description=anomaly_assessment.explanation,
+                evidence={
+                    "anomaly_score": anomaly_assessment.anomaly_score,
+                    "top_signals": [s.model_dump() for s in anomaly_assessment.contributing_signals],
+                    "model": anomaly_assessment.algorithm,
+                },
+                recommendation="Investigate traffic volume, burst intervals, and communication endpoints for unintended data exfiltration or tunnel saturation.",
+                source="ML_ANOMALY",
+            )
+            security.findings.append(anomaly_finding)
+            security.recommendations.append(Recommendation(
+                id="R-ANOMALY-BEHAVIOR",
+                priority=anomaly_assessment.severity,
+                category="behavioral",
+                title="Investigate Anomalous Traffic Flow Dynamics",
+                description=anomaly_assessment.explanation,
+                action="Capture full flow metrics and correlate with host endpoint telemetry to identify source application.",
+            ))
+
+        # ── Step 5: Build response ──
         processing_time = int((time.time() - start_time) * 1000)
 
         capture_duration = 0.0
@@ -106,6 +141,7 @@ async def analyze_pcap(
             classification=classification,
             crypto_analysis=crypto,
             security_assessment=security,
+            anomaly_assessment=anomaly_assessment,
             confidence=ConfidenceInfo(
                 overall_score=round(overall_conf, 4),
                 classification_confidence=round(class_conf, 4),
@@ -142,7 +178,6 @@ async def classify_only(
     file: UploadFile = File(...),
 ):
     """Classification-only endpoint — returns protocol classification without security assessment."""
-    # Validate
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
 
@@ -236,21 +271,36 @@ async def generate_report(report_req: ReportRequest):
     return {"report_html": html, "format": "html"}
 
 
+# ── Model Registry Endpoints ──
+
+@router.get("/models")
+async def list_models():
+    """Return all registered model cards with architecture, metrics, and limitations."""
+    return {"models": get_all_models(), "count": len(get_all_models())}
+
+
+@router.get("/models/{model_id}")
+async def get_model(model_id: str):
+    """Return a single model card by model ID."""
+    card = get_model_card(model_id)
+    if not card:
+        raise HTTPException(status_code=404, detail=f"Model card '{model_id}' not found")
+    return card
+
+
 @router.get("/models/info")
 async def model_info(request: Request):
-    """Return model/rules information."""
+    """Return model and rules engine runtime status."""
     rules_engine = _get_rules_engine(request)
     return {
-        "model_version": rules_engine.version,
-        "model_type": "deterministic_rules_engine",
+        "rules_version": rules_engine.version,
+        "models": get_all_models(),
         "capabilities": [
-            "ike_version_detection",
-            "encryption_algorithm_identification",
-            "authentication_algorithm_identification",
-            "dh_group_identification",
-            "pfs_detection",
-            "replay_protection_detection",
-            "security_risk_scoring",
+            "deterministic_ike_parser",
+            "nist_cryptographic_ruleset",
+            "random_forest_traffic_classifier",
+            "isolation_forest_anomaly_detector",
+            "method_source_provenance_tagging",
             "html_report_generation",
         ],
     }

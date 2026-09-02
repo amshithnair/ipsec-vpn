@@ -36,48 +36,49 @@ def build_ike_header(init_spi, resp_spi, next_payload, version_major, version_mi
 
 
 def build_ikev2_sa_init_payload(enc_id, enc_key_len, auth_id, dh_group):
-    """Build a simplified IKEv2 SA payload with proposal and transforms."""
-    # This builds a minimal SA payload that Scapy/our parser can recognize
-    # Transform: Encryption
-    enc_transform = struct.pack("!BBH BBH HH",
-        3, 0, 12,     # next=3(more), reserved, length
-        1, 0, enc_id, # transform_type=ENCR, reserved, transform_id
-        0x800E, enc_key_len,  # Key Length attribute (type 14)
+    """Build a standard compliant IKEv2 SA payload with proposal and transforms."""
+    if enc_key_len > 0:
+        enc_transform = struct.pack("!BBHBBHHH",
+            3, 0, 12,        # last=3(more), reserved, length=12
+            1, 0, enc_id,    # transform_type=1(ENCR), reserved, transform_id
+            0x800E, enc_key_len  # attribute: Type 14 (Key Length), Value
+        )
+    else:
+        enc_transform = struct.pack("!BBHBBH",
+            3, 0, 8,         # last=3(more), reserved, length=8
+            1, 0, enc_id     # transform_type=1(ENCR), reserved, transform_id
+        )
+
+    auth_transform = struct.pack("!BBHBBH",
+        3, 0, 8,             # last=3(more), reserved, length=8
+        3, 0, auth_id        # transform_type=3(INTEG), reserved, transform_id
     )
-    
-    # Transform: Integrity/Auth
-    auth_transform = struct.pack("!BBH BBH",
-        3, 0, 8,       # next=3(more), reserved, length
-        3, 0, auth_id, # transform_type=INTEG, reserved, transform_id
+
+    dh_transform = struct.pack("!BBHBBH",
+        0, 0, 8,             # last=0(last), reserved, length=8
+        4, 0, dh_group       # transform_type=4(D-H), reserved, transform_id
     )
-    
-    # Transform: DH Group
-    dh_transform = struct.pack("!BBH BBH",
-        0, 0, 8,         # next=0(last), reserved, length
-        4, 0, dh_group,  # transform_type=DH, reserved, transform_id
-    )
-    
+
     transforms = enc_transform + auth_transform + dh_transform
-    
-    # Proposal
+
     proposal = struct.pack("!BBHBBBB",
-        0,                       # last proposal
-        0,                       # reserved
-        8 + len(transforms),     # proposal length
-        1,                       # proposal number
-        1,                       # protocol: IKE
-        0,                       # SPI size
-        3,                       # num transforms
+        0,                   # last proposal = 0
+        0,                   # reserved
+        8 + len(transforms), # proposal length
+        1,                   # proposal number
+        1,                   # protocol: IKE
+        0,                   # SPI size
+        3,                   # num transforms
     )
-    
-    # SA payload header
+
     sa_payload = struct.pack("!BBH",
-        0,                                      # next payload = none
-        0,                                      # critical bit
-        4 + len(proposal) + len(transforms),    # length
+        0,                   # next payload = 0
+        0,                   # critical bit
+        4 + len(proposal) + len(transforms),
     )
-    
+
     return sa_payload + proposal + transforms
+
 
 
 def create_ikev2_sa_init(src_ip, dst_ip, init_spi, resp_spi, enc_id, enc_key_len, auth_id, dh_group, message_id=0):
@@ -115,9 +116,40 @@ def create_esp_packet(src_ip, dst_ip, spi, seq_num, payload_size=64):
     return pkt
 
 
+def build_ikev1_sa_payload(enc_id, hash_id, auth_method, dh_group):
+    """
+    Build an RFC 2408 / RFC 2409 compliant IKEv1 SA payload with ISAKMP transform attributes.
+    """
+    # SA Attributes in TV (Type/Value) format: Type (2B), Value (2B)
+    # Type 1 = Encryption Algorithm (5 = 3DES-CBC)
+    # Type 2 = Hash Algorithm (2 = SHA1, 1 = MD5)
+    # Type 3 = Authentication Method (1 = PSK)
+    # Type 4 = Group Description (2 = Group 2)
+    attr_enc = struct.pack("!HH", 0x8001, enc_id)
+    attr_hash = struct.pack("!HH", 0x8002, hash_id)
+    attr_auth = struct.pack("!HH", 0x8003, auth_method)
+    attr_dh = struct.pack("!HH", 0x8004, dh_group)
+    
+    attributes = attr_enc + attr_hash + attr_auth + attr_dh
+    
+    # Transform Payload (RFC 2408 Section 3.6): next_payload(1B)=0, reserved(1B)=0, length(2B), transform_num(1B)=1, transform_id(1B)=1 (KEY_IKE), reserved(2B)=0
+    trans_len = 8 + len(attributes)
+    transform = struct.pack("!BBHBBH", 0, 0, trans_len, 1, 1, 0) + attributes
+    
+    # Proposal Payload (RFC 2408 Section 3.5): next_payload(1B)=0, reserved(1B)=0, length(2B), proposal_num(1B)=1, protocol_id(1B)=1 (ISAKMP), spi_size(1B)=0, num_transforms(1B)=1
+    prop_len = 8 + len(transform)
+    proposal = struct.pack("!BBHBBBB", 0, 0, prop_len, 1, 1, 0, 1) + transform
+    
+    # SA Payload (RFC 2408 Section 3.4): next_payload(1B)=0, reserved(1B)=0, length(2B), DOI(4B)=1 (IPsec), Situation(4B)=1 (Identity Only)
+    sa_len = 12 + len(proposal)
+    sa_header = struct.pack("!BBHII", 0, 0, sa_len, 1, 1)
+    
+    return sa_header + proposal
+
+
 def create_ikev1_main_mode(src_ip, dst_ip, init_cookie, resp_cookie, enc_id, auth_id, dh_group):
     """Create an IKEv1 Main Mode (Identity Protection) packet."""
-    sa_payload = build_ikev2_sa_init_payload(enc_id, 0, auth_id, dh_group)
+    sa_payload = build_ikev1_sa_payload(enc_id, auth_id, 1, dh_group)
     
     total_length = 28 + len(sa_payload)
     ike_header = build_ike_header(
@@ -280,13 +312,58 @@ def generate_moderate_ipsec_pcap(output_path):
     print(f"✅ Generated moderate IPsec PCAP: {output_path} ({len(packets)} packets)")
 
 
+def generate_anomalous_vpn_pcap(output_path):
+    """
+    Generate an anomalous encrypted VPN communication capture:
+    - IKEv2 handshake
+    - Highly asymmetric, erratic burst payload sizes (e.g. 1400 bytes outbound vs 40 bytes inbound)
+    - Extreme packet size variance and abnormal inter-arrival timing
+    - Triggers Isolation Forest behavioral anomaly detection.
+    """
+    packets = []
+    src_ip = "192.168.100.50"
+    dst_ip = "198.51.100.1"
+
+    init_spi = b'\xfe\xdc\xba\x98\x76\x54\x32\x10'
+    resp_spi = b'\x00\x00\x00\x00\x00\x00\x00\x00'
+
+    # IKEv2 handshake
+    pkt1 = create_ikev2_sa_init(src_ip, dst_ip, init_spi, resp_spi,
+                                 enc_id=20, enc_key_len=256, auth_id=12, dh_group=14)
+    packets.append(pkt1)
+
+    resp_spi2 = b'\x01\x23\x45\x67\x89\xab\xcd\xef'
+    pkt2 = create_ikev2_sa_init(dst_ip, src_ip, init_spi, resp_spi2,
+                                 enc_id=20, enc_key_len=256, auth_id=12, dh_group=14)
+    packets.append(pkt2)
+
+    # Bursty, anomalous ESP traffic
+    spi_out = 0x5555AAAA
+    spi_in = 0xAAAA5555
+
+    # Outbound massive data bursts (simulating large asymmetric exfiltration/burst)
+    for seq in range(1, 80):
+        # erratic sizes between 400 and 1400 bytes
+        sz = 1400 if seq % 2 == 0 else 450
+        packets.append(create_esp_packet(src_ip, dst_ip, spi_out, seq, payload_size=sz))
+
+    # Sparse tiny ACKs
+    for seq in range(1, 10):
+        packets.append(create_esp_packet(dst_ip, src_ip, spi_in, seq, payload_size=32))
+
+    wrpcap(output_path, packets)
+    print(f"✅ Generated anomalous VPN PCAP: {output_path} ({len(packets)} packets)")
+
+
 if __name__ == "__main__":
     output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "pcaps")
     os.makedirs(output_dir, exist_ok=True)
-    
+
     generate_strong_ipsec_pcap(os.path.join(output_dir, "strong-ipsec.pcap"))
     generate_weak_ipsec_pcap(os.path.join(output_dir, "weak-ipsec.pcap"))
+    generate_anomalous_vpn_pcap(os.path.join(output_dir, "anomalous-vpn.pcap"))
     generate_non_ipsec_pcap(os.path.join(output_dir, "non-ipsec.pcap"))
     generate_moderate_ipsec_pcap(os.path.join(output_dir, "moderate-ipsec.pcap"))
-    
+
     print(f"\n🎯 All demo PCAPs generated in: {output_dir}")
+

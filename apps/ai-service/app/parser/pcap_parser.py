@@ -320,30 +320,27 @@ class PcapParser:
         """Process an IKE packet."""
         result.stats.ike_packets += 1
 
+        # Extract raw payload if available
+        raw_payload = None
+        if pkt.haslayer(UDP):
+            raw_payload = bytes(pkt[UDP].payload)
+        elif pkt.haslayer(Raw):
+            raw_payload = bytes(pkt[Raw].load)
+
         # Try IKEv2 first
         if HAS_IKEV2 and pkt.haslayer(IKEv2):
             self._parse_ikev2(pkt, result)
-            return
-
         # Try IKEv1 (ISAKMP)
-        if HAS_ISAKMP and pkt.haslayer(ISAKMP):
+        elif HAS_ISAKMP and pkt.haslayer(ISAKMP):
             self._parse_ikev1(pkt, result)
-            return
 
-        # Fallback: try to determine IKE version from raw payload
-        if pkt.haslayer(UDP):
-            udp = pkt[UDP]
-            payload = bytes(udp.payload)
-            if len(payload) >= 18:
-                # IKE header: initiator SPI (8) + responder SPI (8) + next payload (1) + version (1)
-                version_byte = payload[17]
-                major_version = (version_byte >> 4) & 0x0F
-                if major_version == 2:
-                    result.ike_info.version = "IKEv2"
-                    self._parse_ike_raw(payload, result, is_v2=True)
-                elif major_version == 1:
-                    result.ike_info.version = "IKEv1"
-                    self._parse_ike_raw(payload, result, is_v2=False)
+        # Fallback / Deep inspection: decode raw IKE payload when Scapy dissectors don't extract transforms
+        if raw_payload and len(raw_payload) >= 28:
+            version_byte = raw_payload[17]
+            major_version = (version_byte >> 4) & 0x0F
+            if not result.ike_info.version:
+                result.ike_info.version = "IKEv2" if major_version == 2 else "IKEv1"
+            self._parse_ike_raw(raw_payload, result, is_v2=(major_version == 2))
 
     def _parse_ikev2(self, pkt, result: ParseResult):
         """Parse IKEv2 packet using Scapy's IKEv2 dissector."""
@@ -473,15 +470,12 @@ class PcapParser:
 
     def _parse_ikev1_sa(self, pkt, result: ParseResult):
         """Parse IKEv1 SA payload."""
-        # Walk through proposal and transform payloads
         if pkt.haslayer(ISAKMP_payload_Proposal):
             proposal = pkt[ISAKMP_payload_Proposal]
             prop_info = {"proposal_num": getattr(proposal, 'proposal', 0), "transforms": []}
 
             if pkt.haslayer(ISAKMP_payload_Transform):
                 transform = pkt[ISAKMP_payload_Transform]
-                # IKEv1 transforms have SA attributes
-                # Try to extract common attributes
                 if hasattr(transform, 'transforms'):
                     for attr in transform.transforms:
                         attr_type = getattr(attr, 'type', None)
@@ -501,7 +495,7 @@ class PcapParser:
             result.ike_info.proposals.append(prop_info)
 
     def _parse_ike_raw(self, payload: bytes, result: ParseResult, is_v2: bool):
-        """Fallback raw IKE header parsing when Scapy dissectors fail."""
+        """Fallback raw binary IKE parser that decodes SA, Proposals, and Transforms directly from bytes."""
         if len(payload) < 28:
             return
 
@@ -511,11 +505,166 @@ class PcapParser:
         result.ike_info.initiator_spi = init_spi
         result.ike_info.responder_spi = resp_spi
 
-        # Exchange type
+        next_payload = payload[16]
         exchange_type = payload[18]
         etype = IKE_EXCHANGE_TYPES.get(exchange_type, f"Unknown({exchange_type})")
         if etype not in result.ike_info.exchange_types:
             result.ike_info.exchange_types.append(etype)
+
+        offset = 28
+        current_payload = next_payload
+
+        while offset < len(payload) and current_payload != 0:
+            if offset + 4 > len(payload):
+                break
+            np = payload[offset]
+            p_len = int.from_bytes(payload[offset+2:offset+4], 'big')
+            if p_len < 4 or offset + p_len > len(payload):
+                p_len = len(payload) - offset
+
+            p_data = payload[offset:offset+p_len]
+
+            if is_v2:
+                # IKEv2 Payloads: 33=SA, 34=KE, 40=Nonce
+                if current_payload == 33:
+                    self._parse_ikev2_sa_raw(p_data, result)
+                elif current_payload == 34:
+                    result.ike_info.has_ke = True
+                    if len(p_data) >= 8:
+                        dh_grp = int.from_bytes(p_data[4:6], 'big')
+                        if dh_grp not in result.ike_info.dh_groups:
+                            result.ike_info.dh_groups.append(dh_grp)
+                elif current_payload == 40:
+                    result.ike_info.has_nonce = True
+            else:
+                # IKEv1 Payloads: 1=SA, 4=KE, 10=Nonce
+                if current_payload == 1:
+                    self._parse_ikev1_sa_raw(p_data, result)
+                elif current_payload == 4:
+                    result.ike_info.has_ke = True
+                elif current_payload == 10:
+                    result.ike_info.has_nonce = True
+
+            offset += p_len
+            current_payload = np
+
+    def _parse_ikev1_sa_raw(self, data: bytes, result: ParseResult):
+        """Parse RFC 2408 / RFC 2409 IKEv1 SA payload bytes."""
+        if len(data) < 12:
+            return
+        offset = 4
+        # Skip IPsec DOI (4B) and Situation (4B) if present
+        if len(data) >= 12:
+            doi = int.from_bytes(data[4:8], 'big')
+            if doi == 1:
+                offset = 12
+
+        while offset + 8 <= len(data):
+            next_prop = data[offset]
+            prop_len = int.from_bytes(data[offset+2:offset+4], 'big')
+            if prop_len < 8 or offset + prop_len > len(data):
+                prop_len = len(data) - offset
+
+            trans_offset = offset + 8
+            while trans_offset + 8 <= offset + prop_len:
+                next_trans = data[trans_offset]
+                trans_len = int.from_bytes(data[trans_offset+2:trans_offset+4], 'big')
+                if trans_len < 8 or trans_offset + trans_len > offset + prop_len:
+                    trans_len = (offset + prop_len) - trans_offset
+
+                attr_offset = trans_offset + 8
+                while attr_offset + 4 <= trans_offset + trans_len:
+                    attr_type_raw = int.from_bytes(data[attr_offset:attr_offset+2], 'big')
+                    is_basic = (attr_type_raw & 0x8000) != 0
+                    attr_type = attr_type_raw & 0x7FFF
+
+                    if is_basic:
+                        attr_val = int.from_bytes(data[attr_offset+2:attr_offset+4], 'big')
+                        attr_offset += 4
+                    else:
+                        attr_len = int.from_bytes(data[attr_offset+2:attr_offset+4], 'big')
+                        if attr_offset + 4 + attr_len > trans_offset + trans_len:
+                            break
+                        attr_val = int.from_bytes(data[attr_offset+4:attr_offset+4+attr_len], 'big')
+                        attr_offset += 4 + attr_len
+
+                    # Attribute types (RFC 2409 Section 5)
+                    if attr_type == 1:  # Encryption Algorithm
+                        enc_name = ENCRYPTION_ALGORITHMS.get(attr_val, f"ENC-{attr_val}")
+                        if enc_name not in result.ike_info.encryption_algorithms:
+                            result.ike_info.encryption_algorithms.append(enc_name)
+                    elif attr_type == 2:  # Hash Algorithm
+                        auth_name = AUTH_ALGORITHMS.get(attr_val, f"AUTH-{attr_val}")
+                        if auth_name not in result.ike_info.auth_algorithms:
+                            result.ike_info.auth_algorithms.append(auth_name)
+                    elif attr_type == 4:  # Group Description / DH
+                        if attr_val not in result.ike_info.dh_groups:
+                            result.ike_info.dh_groups.append(attr_val)
+                    elif attr_type == 14:  # Key Length
+                        result.ike_info.key_lengths.append(attr_val)
+
+                if next_trans == 0:
+                    break
+                trans_offset += trans_len
+
+            if next_prop == 0:
+                break
+            offset += prop_len
+
+    def _parse_ikev2_sa_raw(self, data: bytes, result: ParseResult):
+        """Parse IKEv2 SA payload bytes (RFC 7296 Section 3.3)."""
+        if len(data) < 4:
+            return
+        offset = 4  # skip SA header
+        while offset + 8 <= len(data):
+            last_prop = data[offset]
+            prop_len = int.from_bytes(data[offset+2:offset+4], 'big')
+            if prop_len < 8 or offset + prop_len > len(data):
+                prop_len = len(data) - offset
+
+            trans_offset = offset + 8
+            while trans_offset + 8 <= offset + prop_len:
+                last_trans = data[trans_offset]
+                trans_len = int.from_bytes(data[trans_offset+2:trans_offset+4], 'big')
+                if trans_len < 8 or trans_offset + trans_len > offset + prop_len:
+                    trans_len = (offset + prop_len) - trans_offset
+
+                transform_type = data[trans_offset+4]
+                transform_id = int.from_bytes(data[trans_offset+6:trans_offset+8], 'big')
+
+                key_len = None
+                if trans_len > 8:
+                    attr_type = int.from_bytes(data[trans_offset+8:trans_offset+10], 'big') & 0x7FFF
+                    if attr_type == 14 or attr_type == 0x800E:
+                        key_len = int.from_bytes(data[trans_offset+10:trans_offset+12], 'big')
+                        result.ike_info.key_lengths.append(key_len)
+
+                if transform_type == 1:  # Encryption
+                    algo_name = ENCRYPTION_ALGORITHMS.get(transform_id, f"ENC-{transform_id}")
+                    if key_len and str(key_len) not in algo_name:
+                        algo_name = f"{algo_name.split('-CBC')[0].split('-GCM')[0]}-{key_len}"
+                        if 'GCM' in ENCRYPTION_ALGORITHMS.get(transform_id, ''):
+                            algo_name += "-GCM"
+                        elif 'CBC' in ENCRYPTION_ALGORITHMS.get(transform_id, ''):
+                            algo_name += "-CBC"
+                    if algo_name not in result.ike_info.encryption_algorithms:
+                        result.ike_info.encryption_algorithms.append(algo_name)
+                elif transform_type == 3:  # Integrity
+                    auth_name = AUTH_ALGORITHMS.get(transform_id, f"AUTH-{transform_id}")
+                    if auth_name not in result.ike_info.auth_algorithms:
+                        result.ike_info.auth_algorithms.append(auth_name)
+                elif transform_type == 4:  # DH
+                    if transform_id not in result.ike_info.dh_groups:
+                        result.ike_info.dh_groups.append(transform_id)
+
+                if last_trans == 0:
+                    break
+                trans_offset += trans_len
+
+            if last_prop == 0:
+                break
+            offset += prop_len
+
 
     def _process_esp_packet(self, pkt, result: ParseResult):
         """Process an ESP packet."""
