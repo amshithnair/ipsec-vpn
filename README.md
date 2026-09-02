@@ -127,9 +127,9 @@ flowchart TD
     end
 
     subgraph Feature Extraction
-        B[Packet Length Variance]
-        C[Inter-arrival Times (IAT)]
-        D[Flow Byte & Direction Ratios]
+        B["Packet Length Variance"]
+        C["Inter-arrival Times (IAT)"]
+        D["Flow Byte & Direction Ratios"]
         A --> B & C & D
     end
 
@@ -141,8 +141,8 @@ flowchart TD
     end
 
     subgraph Inference Results
-        G[Predicted Traffic Profile:<br>VoIP / Web / Bulk Transfer]
-        H[Anomaly Telemetry:<br>Normal vs. Suspicious Flow]
+        G["Predicted Traffic Profile:<br>VoIP / Web / Bulk Transfer"]
+        H["Anomaly Telemetry:<br>Normal vs. Suspicious Flow"]
         E --> G
         F --> H
     end
