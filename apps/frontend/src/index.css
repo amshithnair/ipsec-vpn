@@ -1356,3 +1356,89 @@ code, .mono {
   margin-bottom: 50px;
 }
 
+/* Icon Box for Emoji Styling */
+.icon-box {
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: 28px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.landing-card-red h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  line-height: 1.25;
+}
+
+.landing-card-red p {
+  font-size: 0.84375rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+}
+
+/* Stat Circle Meters Styling (Clean Round Radial Glow) */
+.stat-circle-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stat-circle-item:hover {
+  transform: scale(1.08);
+}
+
+.svg-ring-container {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 18px rgba(255, 30, 66, 0.35);
+  background: rgba(14, 14, 22, 0.9);
+}
+
+.svg-ring-container svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.svg-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 4;
+}
+
+.svg-ring-fill {
+  fill: none;
+  stroke: #ff1e42;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 175;
+  stroke-dashoffset: 175;
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stat-counter-val {
+  position: absolute;
+  font-size: 0.9375rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  z-index: 10;
+}
+
+
