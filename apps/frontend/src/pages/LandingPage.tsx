@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './LandingPage.css';
 
 const archSpecs = [
   {
@@ -78,14 +79,14 @@ export function LandingPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [accuracyVal, setAccuracyVal] = useState(0);
-  const [threatVal, setThreatVal] = useState(0);
-  const [nistVal, setNistVal] = useState(0);
-  const [ringsFilled, setRingsFilled] = useState(false);
+  const accuracyVal = 96;
+  const threatVal = 99;
+  const nistVal = 96;
+  const [regionMenu, setRegionMenu] = useState('UNITED STATES');
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 40) {
+      if (window.scrollY > 30) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
@@ -95,229 +96,303 @@ export function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    const espCard = document.getElementById('esp-card-landing');
-    if (!espCard) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !ringsFilled) {
-          setRingsFilled(true);
-
-          const duration = 1500;
-          const startTime = performance.now();
-
-          const step = (now: number) => {
-            const progress = Math.min((now - startTime) / duration, 1);
-            const ease = 1 - Math.pow(1 - progress, 3);
-
-            setAccuracyVal(Math.floor(ease * 96));
-            setThreatVal(Math.floor(ease * 99));
-            setNistVal(Math.floor(ease * 96));
-
-            if (progress < 1) {
-              requestAnimationFrame(step);
-            }
-          };
-          requestAnimationFrame(step);
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.3 });
-
-    observer.observe(espCard);
-    return () => observer.disconnect();
-  }, [ringsFilled]);
-
-  const calcDashOffset = (pct: number) => {
-    const circumference = 175;
-    return circumference - (pct / 100) * circumference;
-  };
-
   return (
-    <div style={{ backgroundColor: '#050507', color: '#f5f5f7', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", overflowX: 'hidden' }}>
+    <div style={{ backgroundColor: '#060709', color: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
 
-      {/* ═══════════════════ NAVBAR ═══════════════════ */}
-      <header className={`landing-navbar ${isScrolled ? 'scrolled' : ''}`}>
-        <div className="landing-container">
-          <div className="landing-nav-inner">
-            <a href="#" className="landing-nav-brand">
-              <div className="landing-brand-logo">V</div>
-              <span className="landing-brand-text">VANTAGE</span>
+      {/* ═══════════════════ TACTICAL HUD NAVBAR ═══════════════════ */}
+      <header className={`hud-navbar ${isScrolled ? 'scrolled' : ''}`}>
+        <div className="hud-container">
+          <div className="hud-nav-inner">
+            <a href="#" className="hud-brand">
+              <span>vantage</span>
+              <span className="hud-brand-colon">:</span>
+              <span>vpn</span>
             </a>
 
-            <nav className="landing-nav-links">
-              <a href="#" className="active">Overview</a>
-              <a href="#capabilities">Capabilities</a>
-              <a href="#modules">SIH Modules</a>
-              <a href="#architecture">Architecture</a>
+            <nav className="hud-nav-links">
+              <a href="#" className="hud-nav-link active">PRICING</a>
+              <a href="#capabilities" className="hud-nav-link">FEATURES ▾</a>
+              <a href="#modules" className="hud-nav-link">DOWNLOAD ▾</a>
+              <a href="#architecture" className="hud-nav-link">BLOG</a>
             </nav>
 
-            <button className="landing-btn-launch" onClick={() => navigate('/dashboard')}>
-              Launch VANTAGE →
-            </button>
+            <div className="hud-nav-actions">
+              <button className="hud-selector-btn" onClick={() => setRegionMenu(regionMenu === 'UNITED STATES' ? 'INDIA / NTRO' : 'UNITED STATES')}>
+                <span>{regionMenu}</span>
+                <span style={{ fontSize: '0.65rem' }}>▾</span>
+              </button>
+
+              <button className="hud-icon-btn" title="Toggle Grid Layout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/>
+                </svg>
+              </button>
+
+              <button className="hud-icon-btn" onClick={() => navigate('/dashboard')} title="User Profile / Launch">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
+        <div className="hud-nav-frame-bar" />
       </header>
 
-      {/* ═══════════════════ HERO ═══════════════════ */}
-      <section className="landing-hero">
-        <div className="landing-hero-bg">
-          <div className="landing-orb-primary" />
-          <div className="landing-orb-secondary" />
-          <div className="landing-cyber-grid" />
-          <div className="landing-radar-rings" />
-        </div>
+      {/* ═══════════════════ HERO SECTION ═══════════════════ */}
+      <section className="hud-hero">
+        <div className="hud-container">
 
-        <div className="landing-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 2 }}>
-          <div className="landing-pill-badge">
-            <span className="landing-pill-dot" />
-            NTRO × Smart India Hackathon 2026 · PS ID: 26160
-          </div>
-
-          <h1 className="landing-hero-title">
-            VANTAGE <span className="landing-highlight-box">IPsec VPN</span> Protocol Analyzer
-          </h1>
-
-          <p className="landing-hero-sub">
-            Automated PCAP packet dissection, NIST SP 800-77 cryptographic assessment, and encrypted ESP traffic inference for enterprise & defense VPN deployments.
-          </p>
-
-          <div className="landing-cta-group">
-            <button className="landing-btn-primary" onClick={() => navigate('/dashboard')}>
-              🚀 Launch VANTAGE Dashboard
-            </button>
-            <a href="#architecture" className="landing-btn-secondary">
-              🛡️ View System Architecture
-            </a>
-          </div>
-
-          {/* Live Preview Frame */}
-          <div className="landing-preview-frame">
-            <div className="landing-preview-head">
-              <div style={{ display: 'flex', gap: 8 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#ff3b5c' }} />
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#ffd000' }} />
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#34d399' }} />
-              </div>
-              <div style={{ fontSize: '0.781rem', fontFamily: 'JetBrains Mono', color: '#8e8e93' }}>
-                vantage_ipsec_analysis_live_preview.pcap
-              </div>
-              <div style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 700 }}>● VANTAGE ENGINE ACTIVE</div>
-            </div>
-
-            <div className="landing-preview-body">
-              <div className="landing-preview-card">
-                <div style={{ fontSize: '0.718rem', fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
-                  Protocol Intelligence
-                </div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', marginBottom: 10 }}>
-                  IKEv2 / ESP Tunnel Mode Capture
-                </div>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  <span className="landing-tag green">IKEv2 Initiator</span>
-                  <span className="landing-tag blue">AES-256-GCM</span>
-                  <span className="landing-tag green">DH Group 14 (2048-bit)</span>
-                  <span className="landing-tag green">PFS Enabled</span>
-                  <span className="landing-tag blue">SHA-256 Auth</span>
-                </div>
-              </div>
-
-              <div className="landing-preview-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.718rem', fontWeight: 700, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
-                  Security Risk Score
-                </div>
-                <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#34d399', letterSpacing: '-0.04em' }}>
-                  18 <span style={{ fontSize: '0.9rem', color: '#8e8e93', fontWeight: 500 }}>/ 100</span>
-                </div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.12)', padding: '2px 10px', borderRadius: 999, border: '1px solid rgba(52,211,153,0.3)', marginTop: 4 }}>
-                  LOW RISK — NIST COMPLIANT
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════ TICKER ═══════════════════ */}
-      <div className="landing-ticker-banner">
-        <div className="landing-ticker-track">
-          {[...Array(2)].map((_, i) => (
-            <span key={i} style={{ display: 'inline-flex', gap: 32 }}>
-              <span className="landing-ticker-item">VANTAGE AI DISSECTION <span className="landing-ticker-star">✱</span></span>
-              <span className="landing-ticker-item">NIST SP 800-77 COMPLIANCE <span className="landing-ticker-star">✱</span></span>
-              <span className="landing-ticker-item">AUTOMATED RISK SCORING <span className="landing-ticker-star">✱</span></span>
-              <span className="landing-ticker-item">ESP TRAFFIC INFERENCE <span className="landing-ticker-star">✱</span></span>
-              <span className="landing-ticker-item">IPSEC SECURITY ASSESSMENT <span className="landing-ticker-star">✱</span></span>
+          {/* Top Frame Tech Line */}
+          <div className="hud-top-frame-line">
+            <span style={{ fontSize: '0.65rem', fontFamily: 'Share Tech Mono', color: '#64748b', paddingLeft: 8 }}>
+              [ SEC_SYS // 01 ]
             </span>
-          ))}
+            <span style={{ fontSize: '0.65rem', fontFamily: 'Share Tech Mono', color: '#64748b', paddingRight: 8 }}>
+              [ STATUS: ACTIVE ]
+            </span>
+          </div>
+
+          <div className="hud-hero-grid">
+
+            {/* Left Content Column */}
+            <div className="hud-hero-left">
+              <h1 className="hud-hero-headline">
+                The fastest <br />
+                and secure VPN
+              </h1>
+
+              <p className="hud-hero-subhead">
+                Experience lightning-fast speeds and robust security for a seamless and protected online journey. Automated PCAP packet dissection and NIST SP 800-77 compliance assessment.
+              </p>
+
+              <button className="hud-btn-primary" onClick={() => navigate('/dashboard')}>
+                TRY CYBER:VPN <span className="hud-btn-arrow">▶</span>
+              </button>
+            </div>
+
+            {/* Right Tactical World Map HUD Box */}
+            <div className="hud-hero-right">
+              <div className="hud-corner-box hud-map-frame">
+                <div className="hud-corner-bl" />
+                <div className="hud-corner-br" />
+
+                {/* Map Header Bar */}
+                <div className="hud-map-header">
+                  <span className="hud-map-coords">[ LAT: 39.7392° N // LON: 104.9903° W ]</span>
+                  <div className="hud-map-status">
+                    <span className="hud-dot-live" />
+                    <span>SYSTEM SECURED</span>
+                  </div>
+                </div>
+
+                {/* Map Interactive Canvas */}
+                <div className="hud-map-canvas">
+                  <div className="hud-map-grid-overlay" />
+
+                  {/* World Map SVG Matrix */}
+                  <svg className="hud-world-map-svg" viewBox="0 0 1000 500" fill="currentColor">
+                    <g fill="#94a3b8">
+                      {/* Americas */}
+                      <circle cx="200" cy="180" r="3" />
+                      <circle cx="220" cy="170" r="3" />
+                      <circle cx="240" cy="190" r="3" />
+                      <circle cx="210" cy="210" r="3" />
+                      <circle cx="230" cy="230" r="3" />
+                      <circle cx="250" cy="220" r="3" />
+                      <circle cx="270" cy="240" r="3" />
+                      <circle cx="290" cy="260" r="3" />
+                      <circle cx="310" cy="320" r="3" />
+                      <circle cx="330" cy="350" r="3" />
+                      <circle cx="340" cy="380" r="3" />
+                      {/* Europe / Africa */}
+                      <circle cx="500" cy="160" r="3" />
+                      <circle cx="520" cy="150" r="3" />
+                      <circle cx="540" cy="170" r="3" />
+                      <circle cx="560" cy="180" r="3" />
+                      <circle cx="510" cy="220" r="3" />
+                      <circle cx="530" cy="260" r="3" />
+                      <circle cx="550" cy="300" r="3" />
+                      <circle cx="570" cy="340" r="3" />
+                      {/* Asia / Australia */}
+                      <circle cx="680" cy="170" r="3" />
+                      <circle cx="720" cy="180" r="3" />
+                      <circle cx="760" cy="190" r="3" />
+                      <circle cx="800" cy="210" r="3" />
+                      <circle cx="840" cy="240" r="3" />
+                      <circle cx="780" cy="320" r="3" />
+                      <circle cx="820" cy="350" r="3" />
+                      <circle cx="860" cy="360" r="3" />
+                    </g>
+                  </svg>
+
+                  {/* Pulsing Active Nodes */}
+                  <div className="hud-map-node" style={{ top: '35%', left: '22%' }} />
+                  <div className="hud-map-node" style={{ top: '30%', left: '52%' }} />
+                  <div className="hud-map-node" style={{ top: '42%', left: '75%' }} />
+
+                  {/* Location Popup Badge */}
+                  <div className="hud-location-badge">
+                    <div className="hud-loc-pin-diamond" />
+                    <div className="hud-loc-country">UNITED STATES</div>
+                    <div className="hud-loc-city">DENVER : CO</div>
+                  </div>
+
+                  {/* Target Cursor Arrow */}
+                  <div className="hud-target-cursor" style={{ top: '48%', left: '35%' }}>
+                    ▲
+                  </div>
+
+                  {/* Center Glowing Diamond Secured Badge */}
+                  <div className="hud-secured-diamond-container">
+                    <div className="hud-diamond">
+                      <span className="hud-diamond-arrow top">▲</span>
+                      <span className="hud-diamond-arrow bottom">▼</span>
+                      <span className="hud-diamond-arrow left">◄</span>
+                      <span className="hud-diamond-arrow right">►</span>
+
+                      <div className="hud-diamond-inner">
+                        <span>◄</span>
+                        <span>Secured</span>
+                        <span>►</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          {/* ═══════════════════ BOTTOM FEATURE GRID CARDS ═══════════════════ */}
+          <div className="hud-bottom-grid">
+
+            {/* Card 1 */}
+            <div className="hud-corner-box hud-feature-card active">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
+              <div>
+                <div className="hud-feature-header">
+                  <span className="hud-feature-icon">🌐</span>
+                  <div className="hud-feature-title">Unlock the secure world</div>
+                </div>
+                <p className="hud-feature-desc">
+                  Experience boundless freedom across 129 countries with deterministic Scapy packet dissection.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="hud-corner-box hud-feature-card">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
+              <div>
+                <div className="hud-feature-header">
+                  <span className="hud-feature-icon">🛡️</span>
+                  <div className="hud-feature-title">Unparalleled security</div>
+                </div>
+                <p className="hud-feature-desc">
+                  Achieve total security with our comprehensive VPN solution & NIST SP 800-77 rules engine.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3 */}
+            <div className="hud-corner-box hud-feature-card">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
+              <div>
+                <div className="hud-feature-header">
+                  <span className="hud-feature-icon">💬</span>
+                  <div className="hud-feature-title">24/7 support & AI</div>
+                </div>
+                <p className="hud-feature-desc">
+                  Your trusted companion for uninterrupted privacy & encrypted ESP side-channel traffic inference.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 4 (Protocol List Block) */}
+            <div className="hud-corner-box hud-feature-card">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
+              <div className="hud-protocol-list">
+                <div className="hud-protocol-item"><span>/</span> SSTP</div>
+                <div className="hud-protocol-item"><span>/</span> IPSEC</div>
+                <div className="hud-protocol-item"><span>/</span> WIREGUARD</div>
+                <div className="hud-protocol-item"><span>/</span> NIST SP 800-77</div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
-      </div>
+      </section>
 
-      {/* ═══════════════════ CAPABILITIES ═══════════════════ */}
-      <section className="landing-section" id="capabilities">
-        <div className="landing-container">
-          <div className="landing-eyebrow"><span className="landing-pill-dot" /> Core System Capabilities</div>
-          <h2 className="landing-headline">The Ultimate Assessment<br />Framework For IPsec</h2>
+      {/* ═══════════════════ CAPABILITIES SECTION ═══════════════════ */}
+      <section className="hud-section" id="capabilities">
+        <div className="hud-container">
+          <div className="hud-eyebrow">[ CORE_CAPABILITIES // VANTAGE FRAMEWORK ]</div>
+          <h2 className="hud-headline">The Ultimate Assessment<br />Framework For IPsec</h2>
 
-          <div className="landing-grid-3">
-            <div className="landing-card-red">
-              <div className="icon-box">🎯</div>
-              <h3>Deterministic Scapy Dissection</h3>
-              <p>Inspects IKE SA proposals, transform attributes, encryption algorithms, authentication functions, and Diffie-Hellman groups without LLM hallucination.</p>
-            </div>
+          <div className="hud-grid-3">
+            <div className="hud-corner-box hud-cap-card featured">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
 
-            <div className="landing-card-dark">
               <div>
-                <div style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: 8 }}>NIST SP 800-77 Rules Engine</div>
-                <p style={{ fontSize: '0.843rem', color: '#8e8e93', lineHeight: 1.6 }}>Automated security evaluation for cipher strength, key lifetime, replay protection, PFS configuration, and legacy algorithm flags (3DES, DES, MD5).</p>
-              </div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: 14, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', marginTop: 16, fontFamily: 'JetBrains Mono', fontSize: '0.75rem', color: '#34d399' }}>
-                ✓ AES-GCM-256 Passed<br />
-                ✓ DH Group 14 Passed<br />
-                ✓ PFS Verified
+                <div className="hud-cap-icon-box">🎯</div>
+                <div className="hud-cap-title">Deterministic Scapy Dissection</div>
+                <p className="hud-cap-desc">
+                  Inspects IKE SA proposals, transform attributes, encryption algorithms, authentication functions, and Diffie-Hellman groups without LLM hallucination.
+                </p>
               </div>
             </div>
 
-            <div className="landing-card-dark" id="esp-card-landing">
+            <div className="hud-corner-box hud-cap-card">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
               <div>
-                <div style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: 8 }}>ESP Traffic Inference</div>
-                <p style={{ fontSize: '0.843rem', color: '#8e8e93', lineHeight: 1.6 }}>Predicts hidden application traffic inside encrypted ESP payloads using side-channel packet size histograms & inter-arrival time distributions.</p>
+                <div className="hud-cap-icon-box">🛡️</div>
+                <div className="hud-cap-title">NIST SP 800-77 Rules Engine</div>
+                <p className="hud-cap-desc">
+                  Automated security evaluation for cipher strength, key lifetime, replay protection, PFS configuration, and legacy algorithm flags (3DES, DES, MD5).
+                </p>
+              </div>
+            </div>
+
+            <div className="hud-corner-box hud-cap-card">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
+              <div>
+                <div className="hud-cap-icon-box">⚡</div>
+                <div className="hud-cap-title">ESP Traffic Inference</div>
+                <p className="hud-cap-desc">
+                  Predicts hidden application traffic inside encrypted ESP payloads using side-channel packet size histograms & inter-arrival time distributions.
+                </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', paddingTop: 20, marginTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="stat-circle-item">
-                  <div className="svg-ring-container">
-                    <svg viewBox="0 0 64 64">
-                      <circle className="svg-ring-bg" cx="32" cy="32" r="28" />
-                      <circle className="svg-ring-fill" cx="32" cy="32" r="28" style={{ strokeDashoffset: ringsFilled ? calcDashOffset(96) : 175 }} />
-                    </svg>
-                    <div className="stat-counter-val">{accuracyVal}%</div>
-                  </div>
-                  <div style={{ fontSize: '0.687rem', color: '#8e8e93', textAlign: 'center', fontWeight: 600, marginTop: 4 }}>Classifier<br />Accuracy</div>
+              <div className="hud-meters-row">
+                <div className="hud-meter-item">
+                  <div className="hud-meter-val">{accuracyVal}%</div>
+                  <div className="hud-meter-label">CLASSIFIER</div>
                 </div>
-
-                <div className="stat-circle-item">
-                  <div className="svg-ring-container">
-                    <svg viewBox="0 0 64 64">
-                      <circle className="svg-ring-bg" cx="32" cy="32" r="28" />
-                      <circle className="svg-ring-fill" cx="32" cy="32" r="28" style={{ strokeDashoffset: ringsFilled ? calcDashOffset(99) : 175 }} />
-                    </svg>
-                    <div className="stat-counter-val">{threatVal}%</div>
-                  </div>
-                  <div style={{ fontSize: '0.687rem', color: '#8e8e93', textAlign: 'center', fontWeight: 600, marginTop: 4 }}>Threat<br />Detection</div>
+                <div className="hud-meter-item">
+                  <div className="hud-meter-val">{threatVal}%</div>
+                  <div className="hud-meter-label">THREAT DETECT</div>
                 </div>
-
-                <div className="stat-circle-item">
-                  <div className="svg-ring-container">
-                    <svg viewBox="0 0 64 64">
-                      <circle className="svg-ring-bg" cx="32" cy="32" r="28" />
-                      <circle className="svg-ring-fill" cx="32" cy="32" r="28" style={{ strokeDashoffset: ringsFilled ? calcDashOffset(96) : 175 }} />
-                    </svg>
-                    <div className="stat-counter-val">{nistVal}%</div>
-                  </div>
-                  <div style={{ fontSize: '0.687rem', color: '#8e8e93', textAlign: 'center', fontWeight: 600, marginTop: 4 }}>NIST<br />Compliance</div>
+                <div className="hud-meter-item">
+                  <div className="hud-meter-val">{nistVal}%</div>
+                  <div className="hud-meter-label">NIST COMPLY</div>
                 </div>
               </div>
             </div>
@@ -325,79 +400,99 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════ SIH MODULES ═══════════════════ */}
-      <section className="landing-section" id="modules">
-        <div className="landing-container">
-          <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
-            <div className="landing-eyebrow"><span className="landing-pill-dot" /> NTRO Problem Statement Scope</div>
-            <h2 className="landing-headline">Full End-to-End Scope</h2>
+      {/* ═══════════════════ SIH MODULES SECTION ═══════════════════ */}
+      <section className="hud-section" id="modules">
+        <div className="hud-container">
+          <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 40px' }}>
+            <div className="hud-eyebrow" style={{ justifyContent: 'center' }}>[ NTRO_PROBLEM_STATEMENT // SIH-26160 ]</div>
+            <h2 className="hud-headline">Full End-to-End Scope</h2>
           </div>
 
-          <div className="landing-grid-3">
-            <div className="landing-card-dark">
-              <div style={{ fontSize: '0.75rem', fontFamily: 'JetBrains Mono', color: '#ff1e42', fontWeight: 700, marginBottom: 6 }}>MODULE A</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: 10 }}>VPN Testbed Generation</div>
-              <p style={{ fontSize: '0.843rem', color: '#8e8e93', lineHeight: 1.6, marginBottom: 20 }}>Dockerized laboratory testbed creating IPsec VPN tunnels across Tunnel/Transport modes, AES-GCM, AES-CBC+HMAC, DH groups, and diverse inner traffic.</p>
+          <div className="hud-grid-3">
+            <div className="hud-corner-box hud-cap-card">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
+              <div>
+                <div className="hud-module-tag">[ MODULE_A // TESTBED ]</div>
+                <div className="hud-cap-title">VPN Testbed Generation</div>
+                <p className="hud-cap-desc">
+                  Dockerized laboratory testbed creating IPsec VPN tunnels across Tunnel/Transport modes, AES-GCM, AES-CBC+HMAC, DH groups, and diverse inner traffic.
+                </p>
+              </div>
             </div>
 
-            <div className="landing-card-red" style={{ transform: 'scale(1.03)' }}>
-              <div style={{ fontSize: '0.75rem', fontFamily: 'JetBrains Mono', color: '#fff', fontWeight: 700, marginBottom: 6 }}>MODULE B & C</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: 10 }}>VANTAGE AI Engine</div>
-              <p style={{ fontSize: '0.843rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, marginBottom: 20 }}>Scapy dissector parses IKE exchange payloads deterministically while XGBoost ML predicts inner encrypted application types.</p>
+            <div className="hud-corner-box hud-cap-card featured">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
+              <div>
+                <div className="hud-module-tag">[ MODULE_B & C // AI ENGINE ]</div>
+                <div className="hud-cap-title">VANTAGE AI Engine</div>
+                <p className="hud-cap-desc">
+                  Scapy dissector parses IKE exchange payloads deterministically while XGBoost ML predicts inner encrypted application types.
+                </p>
+              </div>
             </div>
 
-            <div className="landing-card-dark">
-              <div style={{ fontSize: '0.75rem', fontFamily: 'JetBrains Mono', color: '#ff1e42', fontWeight: 700, marginBottom: 6 }}>MODULE D & E</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: 10 }}>Security & Reporting</div>
-              <p style={{ fontSize: '0.843rem', color: '#8e8e93', lineHeight: 1.6, marginBottom: 20 }}>Generates automated Risk Score (0-100), CVE Threat Matrix, Executive Summary, and downloadable HTML/PDF technical report.</p>
+            <div className="hud-corner-box hud-cap-card">
+              <div className="hud-corner-bl" />
+              <div className="hud-corner-br" />
+
+              <div>
+                <div className="hud-module-tag">[ MODULE_D & E // REPORTING ]</div>
+                <div className="hud-cap-title">Security & Reporting</div>
+                <p className="hud-cap-desc">
+                  Generates automated Risk Score (0-100), CVE Threat Matrix, Executive Summary, and downloadable HTML/PDF technical report.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══════════════════ INTERACTIVE ARCHITECTURE MATRIX ═══════════════════ */}
-      <section className="landing-section" id="architecture">
-        <div className="landing-container">
-          <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto' }}>
-            <div className="landing-eyebrow"><span className="landing-pill-dot" /> System Architecture Matrix</div>
-            <h2 className="landing-headline">Interactive Technical Specification</h2>
-            <p style={{ fontSize: '0.95rem', color: '#8e8e93', lineHeight: 1.6 }}>Click any architectural layer below to inspect its live data structure, API contracts, and execution benchmarks.</p>
+      {/* ═══════════════════ ARCHITECTURE MATRIX ═══════════════════ */}
+      <section className="hud-section" id="architecture">
+        <div className="hud-container">
+          <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 40px' }}>
+            <div className="hud-eyebrow" style={{ justifyContent: 'center' }}>[ INTERACTIVE_MATRIX // SYSTEM ARCHITECTURE ]</div>
+            <h2 className="hud-headline">Technical Specifications</h2>
           </div>
 
-          <div className="landing-arch-interactive">
+          <div className="hud-arch-interactive">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { code: "LAYER 01", title: "Presentation Layer", sub: "React 18 · TypeScript · Recharts" },
+                { code: "LAYER 01", title: "Presentation Layer", sub: "React 18 · TypeScript · Vite" },
                 { code: "LAYER 02", title: "REST Gateway & Queue", sub: "Go (Gin) · Redis · PostgreSQL" },
                 { code: "LAYER 03", title: "AI & Dissector Engine", sub: "Python 3.11 · Scapy · XGBoost" },
                 { code: "SECURITY", title: "Boundary & Isolation", sub: "Dockerized SOC Sandbox" }
               ].map((tab, i) => (
                 <div
                   key={i}
-                  className={`landing-arch-tab ${activeTab === i ? 'active' : ''}`}
+                  className={`hud-arch-tab ${activeTab === i ? 'active' : ''}`}
                   onClick={() => setActiveTab(i)}
                 >
-                  <span style={{ fontSize: '0.687rem', fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#ff1e42' }}>{tab.code}</span>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#ffffff' }}>{tab.title}</span>
-                  <span style={{ fontSize: '0.75rem', color: '#8e8e93' }}>{tab.sub}</span>
+                  <span style={{ fontSize: '0.687rem', fontFamily: 'Share Tech Mono', fontWeight: 700, color: 'var(--neon-green)' }}>{tab.code}</span>
+                  <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff' }}>{tab.title}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{tab.sub}</span>
                 </div>
               ))}
             </div>
 
-            <div className="landing-terminal-frame">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="hud-terminal-frame">
+              <div className="hud-terminal-head">
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#ff3b5c' }} />
-                  <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#ffd000' }} />
-                  <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#34d399' }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff3b5c' }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ffd000' }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00ff9d' }} />
                 </div>
-                <div style={{ fontSize: '0.781rem', fontFamily: 'JetBrains Mono', color: '#8e8e93' }}>
+                <div style={{ fontSize: '0.781rem', fontFamily: 'Share Tech Mono', color: '#94a3b8' }}>
                   {archSpecs[activeTab].filename}
                 </div>
-                <div style={{ fontSize: '0.687rem', color: '#34d399', fontWeight: 700, fontFamily: 'JetBrains Mono' }}>200 OK</div>
+                <div style={{ fontSize: '0.687rem', color: '#00ff9d', fontWeight: 700, fontFamily: 'Share Tech Mono' }}>200 OK</div>
               </div>
 
-              <pre className="landing-terminal-body">
+              <pre className="hud-terminal-body">
                 {archSpecs[activeTab].html}
               </pre>
             </div>
@@ -406,53 +501,54 @@ export function LandingPage() {
       </section>
 
       {/* ═══════════════════ FOOTER ═══════════════════ */}
-      <footer className="landing-footer">
-        <div className="landing-container">
-          <div className="landing-footer-grid">
+      <footer className="hud-footer">
+        <div className="hud-container">
+          <div className="hud-footer-grid">
             <div>
-              <a href="#" className="landing-nav-brand">
-                <div className="landing-brand-logo">V</div>
-                <span className="landing-brand-text">VANTAGE</span>
+              <a href="#" className="hud-brand" style={{ marginBottom: 14 }}>
+                <span>vantage</span>
+                <span className="hud-brand-colon">:</span>
+                <span>vpn</span>
               </a>
-              <p style={{ fontSize: '0.812rem', color: '#8e8e93', lineHeight: 1.6, marginTop: 14, maxWidth: 320 }}>
-                VANTAGE: AI-Powered IPsec VPN Protocol Analyzer developed for National Technical Research Organisation (NTRO) under Smart India Hackathon 2026.
+              <p style={{ fontSize: '0.812rem', color: '#94a3b8', lineHeight: 1.6, maxWidth: 320 }}>
+                AI-Powered IPsec VPN Protocol Analyzer developed for National Technical Research Organisation (NTRO) under Smart India Hackathon 2026.
               </p>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.843rem', fontWeight: 700, color: '#fff', marginBottom: 16 }}>Navigation</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.812rem', color: '#8e8e93' }}>
-                <a href="#" style={{ color: '#8e8e93', textDecoration: 'none' }}>Overview</a>
-                <a href="#capabilities" style={{ color: '#8e8e93', textDecoration: 'none' }}>Capabilities</a>
-                <a href="#modules" style={{ color: '#8e8e93', textDecoration: 'none' }}>SIH Modules</a>
-                <a href="#architecture" style={{ color: '#8e8e93', textDecoration: 'none' }}>Architecture</a>
+              <div className="hud-footer-title">NAVIGATION</div>
+              <div className="hud-footer-links">
+                <a href="#">Overview</a>
+                <a href="#capabilities">Capabilities</a>
+                <a href="#modules">SIH Modules</a>
+                <a href="#architecture">Architecture</a>
               </div>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.843rem', fontWeight: 700, color: '#fff', marginBottom: 16 }}>Tech Stack</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.812rem', color: '#8e8e93' }}>
-                <div>React 18 + TypeScript</div>
-                <div>Go (Gin Framework)</div>
-                <div>Python 3.11 + Scapy</div>
-                <div>PostgreSQL & Redis</div>
+              <div className="hud-footer-title">TECH STACK</div>
+              <div className="hud-footer-links">
+                <span>React 18 + TypeScript</span>
+                <span>Go (Gin Framework)</span>
+                <span>Python 3.11 + Scapy</span>
+                <span>PostgreSQL & Redis</span>
               </div>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.843rem', fontWeight: 700, color: '#fff', marginBottom: 16 }}>Organization</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.812rem', color: '#8e8e93' }}>
-                <div>NTRO (Govt of India)</div>
-                <div>Smart India Hackathon 2026</div>
-                <div>Problem ID: SIH-26160</div>
-                <div>Theme: Cybersecurity</div>
+              <div className="hud-footer-title">ORGANIZATION</div>
+              <div className="hud-footer-links">
+                <span>NTRO (Govt of India)</span>
+                <span>Smart India Hackathon 2026</span>
+                <span>Problem ID: SIH-26160</span>
+                <span>Theme: Cybersecurity</span>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 28, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: '0.75rem', color: '#48484a' }}>
-            <div>© 2026 VANTAGE — Developed for NTRO SIH 2026</div>
-            <div>NIST SP 800-77 Compliant Protocol Assessment Framework</div>
+          <div className="hud-footer-bottom">
+            <div>© 2026 VANTAGE : VPN — DEVELOPED FOR NTRO SIH 2026</div>
+            <div>[ STATUS: NIST SP 800-77 COMPLIANT ]</div>
           </div>
         </div>
       </footer>

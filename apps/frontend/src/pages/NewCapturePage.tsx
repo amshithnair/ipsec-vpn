@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, AlertCircle } from 'lucide-react';
+import { UploadCloud, AlertCircle, Radio, Cpu, ShieldCheck, Database, Layers, ArrowRight } from 'lucide-react';
 import { uploadPcap, startAnalysis } from '@/services/api';
 
 export function NewCapturePage() {
@@ -50,69 +50,197 @@ export function NewCapturePage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: 640, margin: '0 auto' }}>
-      <div>
-        <h2 style={{ fontSize: '1.125rem', fontWeight: 600, margin: '0 0 var(--space-2)' }}>Analyze New PCAP</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.813rem', margin: 0 }}>
-          Upload a packet capture containing IPsec/IKE traffic for automated security analysis.
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: 1080, margin: '0 auto' }}>
+      
+      {/* ── HEADER BANNER ────────────────────────────────────────── */}
+      <div
+        className="hud-corner-box card"
+        style={{
+          padding: '24px',
+          background: 'linear-gradient(135deg, rgba(0, 255, 157, 0.08), #0e1115)',
+          border: '1px solid var(--border-muted)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 16,
+        }}
+      >
+        <div className="hud-corner-bl" />
+        <div className="hud-corner-br" />
+
+        <div>
+          <div style={{ fontSize: '0.687rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 4 }}>
+            [ TELEMETRY INGESTION CENTER ]
+          </div>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0, color: '#ffffff', fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
+            Ingest Packet Capture Payload
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.843rem', margin: '4px 0 0 0' }}>
+            Upload PCAP / PCAPNG network captures containing IPsec IKEv1, IKEv2, or ESP encrypted tunnel traffic.
+          </p>
+        </div>
+
+        <div className="badge badge-completed" style={{ fontSize: '0.75rem', padding: '6px 14px' }}>
+          <span className="badge-pulse-dot" />
+          <span>INGESTION ENGINE READY</span>
+        </div>
       </div>
 
+      {/* ── ERROR MESSAGE ────────────────────────────────────────── */}
       {error && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--sev-critical-bg)', border: '1px solid var(--sev-critical-border)', borderRadius: 'var(--radius-md)', color: 'var(--sev-critical-text)', fontSize: '0.813rem' }}>
-          <AlertCircle size={16} />
-          {error}
+        <div className="hud-corner-box" style={{ padding: '14px 18px', background: 'var(--sev-critical-bg)', border: '1px solid var(--sev-critical-border)', borderRadius: 'var(--radius-sm)', color: 'var(--sev-critical-text)', fontSize: '0.843rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <AlertCircle size={18} />
+          <span style={{ fontFamily: 'var(--font-mono)' }}>{error}</span>
         </div>
       )}
 
+      {/* ── HOLOGRAPHIC LASER DROPZONE ───────────────────────────── */}
       <label
-        className={`upload-zone ${isDragging ? 'drag-active' : ''}`}
+        className={`hud-corner-box hud-ingest-dropzone ${isDragging ? 'drag-active' : ''}`}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
         onDrop={onDrop}
-        style={{
-          border: '2px dashed var(--border-muted)',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-12) var(--space-6)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 'var(--space-4)',
-          cursor: uploading ? 'wait' : 'pointer',
-          background: isDragging ? 'var(--accent-glow)' : 'var(--bg-surface)',
-          borderColor: isDragging ? 'var(--accent-primary)' : 'var(--border-muted)',
-          transition: 'var(--transition-base)',
-          textAlign: 'center',
-        }}
+        style={{ cursor: uploading ? 'wait' : 'pointer' }}
       >
+        <div className="hud-corner-bl" />
+        <div className="hud-corner-br" />
+
         {uploading ? (
-          <>
-            <div className="spinner" />
-            <div style={{ fontWeight: 600 }}>Uploading & Starting Analysis...</div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.813rem' }}>{selectedFile?.name}</div>
-          </>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '20px 0' }}>
+            <div className="state-radar-ring green">
+              <Radio size={32} className="spin-slow" />
+            </div>
+
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.1rem', fontWeight: 700, color: '#ffffff' }}>
+              {"INGESTING & PARSING PACKET PAYLOAD..."}
+            </div>
+
+            <div style={{ color: 'var(--accent-primary)', fontFamily: 'var(--font-mono)', fontSize: '0.843rem' }}>
+              <code>{selectedFile?.name}</code>
+            </div>
+
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              DISPATCHING REDIS PIPELINE JOB // INITIATING SCAPY DISSECTOR
+            </div>
+          </div>
         ) : (
           <>
-            <UploadCloud size={40} style={{ color: 'var(--accent-primary)' }} />
-            <div>
-              <div style={{ fontWeight: 600, marginBottom: 4 }}>Drag & drop a PCAP file here</div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.813rem' }}>or click to browse — .pcap, .pcapng up to 100 MB</div>
+            <div className="state-radar-ring green">
+              <UploadCloud size={32} />
             </div>
+
+            <div>
+              <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', marginBottom: 6 }}>
+                {"Drag & Drop PCAP File Here"}
+              </div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                or click to browse local file system
+              </div>
+            </div>
+
+            {/* Formats Badges Bar */}
+            <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <span className="badge badge-pending" style={{ fontSize: '0.72rem' }}>
+                FORMAT: .PCAP / .PCAPNG
+              </span>
+              <span className="badge badge-pending" style={{ fontSize: '0.72rem' }}>
+                MAX SIZE: 100 MB
+              </span>
+              <span className="badge badge-completed" style={{ fontSize: '0.72rem' }}>
+                NIST SP 800-77 READY
+              </span>
+            </div>
+
             <input type="file" accept=".pcap,.pcapng" style={{ display: 'none' }} onChange={onFileSelect} />
           </>
         )}
       </label>
 
-      <div className="card" style={{ fontSize: '0.813rem', color: 'var(--text-secondary)' }}>
-        <div style={{ fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>What happens next?</div>
-        <ol style={{ paddingLeft: 'var(--space-5)', margin: 0, lineHeight: 1.8 }}>
-          <li>Your file is uploaded to the Go backend and stored securely.</li>
-          <li>The Python AI service parses the packets using Scapy.</li>
-          <li>Deterministic IPsec/IKE classification extracts protocols and crypto params.</li>
-          <li>The rules engine evaluates cryptographic strength and generates findings.</li>
-          <li>You see the full security assessment and technical report.</li>
-        </ol>
+      {/* ── 5-STAGE PIPELINE MATRIX ("What happens next?") ────────── */}
+      <div className="hud-corner-box card">
+        <div className="hud-corner-bl" />
+        <div className="hud-corner-br" />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: '0.687rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontWeight: 700, letterSpacing: '0.08em' }}>
+              [ AUTOMATED WORKFLOW MATRIX ]
+            </div>
+            <h3 style={{ fontSize: '1.05rem', color: '#ffffff', margin: '2px 0 0 0', fontWeight: 700 }}>
+              Analysis Pipeline Stages
+            </h3>
+          </div>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            5 END-TO-END PHASES
+          </span>
+        </div>
+
+        <div className="hud-pipeline-grid">
+
+          {/* Stage 1 */}
+          <div className="hud-pipeline-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="hud-pipeline-stage">STAGE 01</span>
+              <Database size={14} color="var(--accent-primary)" />
+            </div>
+            <div className="hud-pipeline-title">REST Ingestion</div>
+            <div className="hud-pipeline-desc">
+              {"Go 1.23 REST Gateway ingests & hashes PCAP payload."}
+            </div>
+          </div>
+
+          {/* Stage 2 */}
+          <div className="hud-pipeline-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="hud-pipeline-stage">STAGE 02</span>
+              <Layers size={14} color="#38bdf8" />
+            </div>
+            <div className="hud-pipeline-title">Redis Queue</div>
+            <div className="hud-pipeline-desc">
+              Worker queue dispatches job to AI micro-service.
+            </div>
+          </div>
+
+          {/* Stage 3 */}
+          <div className="hud-pipeline-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="hud-pipeline-stage">STAGE 03</span>
+              <Cpu size={14} color="var(--accent-primary)" />
+            </div>
+            <div className="hud-pipeline-title">Scapy Parsing</div>
+            <div className="hud-pipeline-desc">
+              {"Deterministic parser extracts IKE proposals & transforms."}
+            </div>
+          </div>
+
+          {/* Stage 4 */}
+          <div className="hud-pipeline-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="hud-pipeline-stage">STAGE 04</span>
+              <ShieldCheck size={14} color="#ffd000" />
+            </div>
+            <div className="hud-pipeline-title">NIST SP 800-77</div>
+            <div className="hud-pipeline-desc">
+              {"Compliance engine audits cipher strength & DH groups."}
+            </div>
+          </div>
+
+          {/* Stage 5 */}
+          <div className="hud-pipeline-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="hud-pipeline-stage">STAGE 05</span>
+              <ArrowRight size={14} color="var(--accent-primary)" />
+            </div>
+            <div className="hud-pipeline-title">{"AI & Report"}</div>
+            <div className="hud-pipeline-desc">
+              {"XGBoost predicts ESP traffic & generates report."}
+            </div>
+          </div>
+
+        </div>
       </div>
+
     </div>
   );
 }

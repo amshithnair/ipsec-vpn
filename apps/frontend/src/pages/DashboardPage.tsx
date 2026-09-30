@@ -10,18 +10,20 @@ import {
   ArrowRight,
   Shield,
   Zap,
+  Radio,
+  RefreshCw,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { fetchDashboardSummary } from '@/services/api';
-import { SeverityBadge, SecurifyPill } from '@/components/common/Badges';
+import { SeverityBadge } from '@/components/common/Badges';
 import { ErrorState, EmptyState, CardSkeleton } from '@/components/common/States';
 import type { DashboardSummary } from '@/types';
 
 const COLORS = [
-  '#00E699', // Low - Emerald
-  '#FFD043', // Medium - Gold
-  '#FF8C38', // High - Warm Amber
-  '#FF2D55', // Critical - Crimson Red
+  '#00ff9d', // Low - Neon Green
+  '#ffd000', // Medium - Gold
+  '#ff9f1c', // High - Warm Amber
+  '#ff1e42', // Critical - Crimson Red
 ];
 
 export function DashboardPage() {
@@ -51,8 +53,8 @@ export function DashboardPage() {
     );
   }
 
-  if (error) return <ErrorState title="Dashboard unavailable" message={error} onRetry={load} />;
-  if (!data) return <EmptyState title="No data" message="Dashboard summary is empty." />;
+  if (error) return <ErrorState title="Dashboard Telemetry Unavailable" message={error} onRetry={load} />;
+  if (!data) return <EmptyState title="No Telemetry Data" message="Dashboard summary is empty." />;
 
   const chartData = [
     { name: 'Low', value: data.risk_distribution.low },
@@ -64,168 +66,115 @@ export function DashboardPage() {
   const totalRiskValues = chartData.reduce((acc, d) => acc + d.value, 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-      {/* Product Hero Banner (Securify Reference Design) */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+
+      {/* ── COMMAND CENTER HEADER ────────────────────────────────────── */}
       <div
-        className="card"
+        className="hud-corner-box card"
         style={{
-          position: 'relative',
-          padding: 'var(--space-8) var(--space-6)',
+          padding: '20px 24px',
           display: 'flex',
-          flexDirection: 'column',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          textAlign: 'center',
-          background: 'radial-gradient(ellipse at 50% 0%, rgba(255, 45, 85, 0.22) 0%, rgba(15, 14, 22, 0.9) 70%)',
-          border: '1px solid rgba(255, 45, 85, 0.3)',
-          overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-        }}
-      >
-        {/* Ambient Grid overlay inside Hero */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Securify Security Badge Pill */}
-        <div style={{ marginBottom: 16, zIndex: 1 }}>
-          <SecurifyPill text="Military-Grade Security VPN Protocol Analyzer" />
-        </div>
-
-        {/* Hero Title with Highlight Box */}
-        <h1
-          style={{
-            fontSize: '2.5rem',
-            fontWeight: 800,
-            maxWidth: 820,
-            lineHeight: 1.15,
-            marginBottom: 16,
-            zIndex: 1,
-            letterSpacing: '-0.03em',
-          }}
-        >
-          Most <span className="highlight-box">Secure</span> VPN For Total Online Freedom
-        </h1>
-
-        <p
-          style={{
-            fontSize: '1rem',
-            color: 'var(--text-secondary)',
-            maxWidth: 640,
-            marginBottom: 28,
-            zIndex: 1,
-            lineHeight: 1.6,
-          }}
-        >
-          Passive IPsec/VPN protocol auditing, NIST SP 800-131A cryptographic compliance, and Isolation Forest ML behavioral anomaly detection.
-        </p>
-
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: 16, zIndex: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button className="btn btn-primary btn-lg" onClick={() => navigate('/captures/new')}>
-            <Upload size={16} />
-            <span>Ingest PCAP Capture</span>
-            <ArrowRight size={16} />
-          </button>
-
-          <button className="btn btn-secondary btn-lg" onClick={() => navigate('/demo')}>
-            <FlaskConical size={16} />
-            <span>Explore Demo Lab</span>
-          </button>
-        </div>
-
-        {/* Bottom Arc Glow Accent */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: -80,
-            width: '80%',
-            height: 120,
-            background: 'radial-gradient(ellipse at 50% 100%, rgba(255, 45, 85, 0.4) 0%, transparent 70%)',
-            pointerEvents: 'none',
-            borderRadius: '50%',
-          }}
-        />
-      </div>
-
-      {/* Marquee Ticker Ribbon (Securify Reference) */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-around',
-          padding: '12px 24px',
-          background: 'rgba(255, 45, 85, 0.08)',
-          border: '1px solid rgba(255, 45, 85, 0.2)',
-          borderRadius: 'var(--radius-full)',
-          fontSize: '0.786rem',
-          fontWeight: 700,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: 'var(--text-primary)',
           flexWrap: 'wrap',
-          gap: 12,
+          gap: 16,
+          background: 'linear-gradient(135deg, rgba(0, 255, 157, 0.06), #0e1115)',
+          border: '1px solid var(--border-muted)',
         }}
       >
-        <span>BROWSE FREELY</span>
-        <span style={{ color: 'var(--accent-primary)' }}>✱</span>
-        <span>SECURE ANYWHERE</span>
-        <span style={{ color: 'var(--accent-primary)' }}>✱</span>
-        <span>DIGITAL SHIELD</span>
-        <span style={{ color: 'var(--accent-primary)' }}>✱</span>
-        <span>SAFE AUDITING</span>
+        <div className="hud-corner-bl" />
+        <div className="hud-corner-br" />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)', boxShadow: '0 0 10px var(--accent-primary)' }} />
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em', color: '#ffffff' }}>
+              [ VANTAGE // COMMAND CENTER ]
+            </h2>
+            <span className="badge badge-completed" style={{ fontSize: '0.687rem' }}>
+              ● LIVE TELEMETRY
+            </span>
+          </div>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--font-mono)' }}>
+            Real-time IPsec protocol dissection, NIST SP 800-77 compliance, & XGBoost ML side-channel inference.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn btn-secondary btn-sm" onClick={load} title="Refresh Telemetry">
+            <RefreshCw size={13} />
+            <span>REFRESH</span>
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => navigate('/demo')}>
+            <FlaskConical size={13} />
+            <span>DEMO LAB</span>
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => navigate('/captures/new')}>
+            <Upload size={13} />
+            <span>+ INGEST PCAP {'▶'}</span>
+          </button>
+        </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
+      {/* ── KPI METRIC WIDGET BAR ────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 'var(--space-4)' }}>
         <KpiCard
-          icon={<FileText size={20} />}
+          icon={<FileText size={18} />}
           label="Total Captures"
           value={data.total_captures}
-          color="#FF2D55"
+          color="#00ff9d"
+          subText="Stored PCAP Captures"
         />
         <KpiCard
-          icon={<BarChart3 size={20} />}
+          icon={<BarChart3 size={18} />}
           label="Analyzed Captures"
           value={data.analyzed}
-          color="#00E699"
+          color="#38bdf8"
+          subText="Fully Evaluated Tunnels"
         />
         <KpiCard
-          icon={<ShieldAlert size={20} />}
+          icon={<ShieldAlert size={18} />}
           label="High / Critical Risks"
           value={data.high_risk + data.critical}
-          color="#FF2D55"
+          color="#ff1e42"
+          subText="NIST Non-Compliant Flags"
         />
         <KpiCard
-          icon={<Activity size={20} />}
+          icon={<Activity size={18} />}
           label="Behavioral Anomalies"
           value={data.anomalies_count ?? 0}
-          color="#FF8C38"
+          color="#ff9f1c"
+          subText="Side-Channel Anomalies"
         />
       </div>
 
-      {/* Visualizations & Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 'var(--space-5)' }}>
-        {/* Risk Distribution Chart */}
-        <div className="card">
+      {/* ── VISUALIZATIONS & POSTURE ACTION MATRIX ────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.75fr', gap: 'var(--space-5)' }}>
+        
+        {/* Risk Distribution Chart Card */}
+        <div className="hud-corner-box card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div className="hud-corner-bl" />
+          <div className="hud-corner-br" />
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ fontSize: '0.95rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
-              System Risk Distribution
-            </h3>
+            <div>
+              <div style={{ fontSize: '0.687rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                [ SYSTEM CRYPTOGRAPHIC AUDIT ]
+              </div>
+              <h3 style={{ fontSize: '1rem', color: '#ffffff', margin: '2px 0 0 0', fontWeight: 700 }}>
+                NIST SP 800-77 Risk Distribution
+              </h3>
+            </div>
             <span className="badge badge-pending" style={{ fontSize: '0.72rem' }}>
-              {totalRiskValues} evaluated captures
+              {totalRiskValues} EVALUATED TUNNELS
             </span>
           </div>
 
           <div style={{ height: 210 }}>
             {totalRiskValues === 0 ? (
-              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                No analyzed captures in database.
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', gap: 8 }}>
+                <Radio size={24} style={{ opacity: 0.5 }} />
+                <span>No analyzed captures in memory database.</span>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -241,16 +190,17 @@ export function DashboardPage() {
                     paddingAngle={4}
                   >
                     {chartData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i]} stroke="rgba(0,0,0,0.5)" strokeWidth={2} />
+                      <Cell key={i} fill={COLORS[i]} stroke="rgba(0,0,0,0.8)" strokeWidth={2} />
                     ))}
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: 'rgba(22, 20, 31, 0.95)',
-                      border: '1px solid rgba(255, 45, 85, 0.4)',
-                      borderRadius: 'var(--radius-md)',
+                      background: '#090b0e',
+                      border: '1px solid var(--accent-primary)',
+                      borderRadius: 'var(--radius-sm)',
                       color: '#FFF',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.8)',
+                      fontFamily: 'var(--font-mono)',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.9)',
                     }}
                   />
                 </PieChart>
@@ -258,73 +208,97 @@ export function DashboardPage() {
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-5)', marginTop: 'var(--space-2)' }}>
+          {/* Legend Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--border-subtle)' }}>
             {chartData.map((d, i) => (
-              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.786rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS[i], display: 'inline-block', boxShadow: `0 0 8px ${COLORS[i]}` }} />
-                {d.name}: {d.value}
+              <div key={d.name} style={{ background: 'rgba(255,255,255,0.02)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.687rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS[i] }} />
+                  {d.name.toUpperCase()}
+                </div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', fontFamily: 'var(--font-mono)' }}>
+                  {d.value}
+                </div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Security Posture & Quick Links */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 'var(--space-4)' }}>
+        <div className="hud-corner-box card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 'var(--space-4)' }}>
+          <div className="hud-corner-bl" />
+          <div className="hud-corner-br" />
+
           <div>
-            <h3 style={{ fontSize: '0.95rem', color: 'var(--text-primary)', margin: '0 0 var(--space-4) 0', fontWeight: 700 }}>
-              Security Posture Actions
+            <div style={{ fontSize: '0.687rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 4 }}>
+              [ SECURITY POSTURE ACTIONS ]
+            </div>
+            <h3 style={{ fontSize: '1rem', color: '#ffffff', margin: '0 0 var(--space-4) 0', fontWeight: 700 }}>
+              Command & Assessment Matrix
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
                 className="btn btn-secondary"
-                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 18px', borderRadius: 'var(--radius-md)' }}
+                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 16px', textTransform: 'none', fontFamily: 'var(--font-sans)', fontSize: '0.843rem' }}
                 onClick={() => navigate('/posture')}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Shield size={16} color="#FF2D55" />
-                  <span>Enterprise Security Posture</span>
+                  <Shield size={16} color="var(--accent-primary)" />
+                  <span style={{ fontWeight: 600 }}>Enterprise Security Posture</span>
                 </div>
-                <ArrowRight size={15} />
+                <ArrowRight size={14} color="var(--accent-primary)" />
               </button>
+
               <button
                 className="btn btn-secondary"
-                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 18px', borderRadius: 'var(--radius-md)' }}
+                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 16px', textTransform: 'none', fontFamily: 'var(--font-sans)', fontSize: '0.843rem' }}
                 onClick={() => navigate('/remediation')}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Zap size={16} color="#FF2D55" />
-                  <span>Remediation Center</span>
+                  <Zap size={16} color="var(--accent-primary)" />
+                  <span style={{ fontWeight: 600 }}>Remediation Center</span>
                 </div>
-                <ArrowRight size={15} />
+                <ArrowRight size={14} color="var(--accent-primary)" />
               </button>
+
               <button
                 className="btn btn-secondary"
-                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 18px', borderRadius: 'var(--radius-md)' }}
+                style={{ justifyContent: 'space-between', width: '100%', padding: '12px 16px', textTransform: 'none', fontFamily: 'var(--font-sans)', fontSize: '0.843rem' }}
                 onClick={() => navigate('/compare')}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Activity size={16} color="#FF2D55" />
-                  <span>Capture Comparison Matrix</span>
+                  <Activity size={16} color="var(--accent-primary)" />
+                  <span style={{ fontWeight: 600 }}>Capture Comparison Matrix</span>
                 </div>
-                <ArrowRight size={15} />
+                <ArrowRight size={14} color="var(--accent-primary)" />
               </button>
             </div>
           </div>
 
-          <div style={{ padding: 'var(--space-4)', background: 'rgba(255, 45, 85, 0.08)', border: '1px solid rgba(255, 45, 85, 0.2)', borderRadius: 'var(--radius-md)', fontSize: '0.786rem', color: 'var(--text-secondary)' }}>
-            <strong style={{ color: '#FFF' }}>Cryptographic Integrity:</strong> Rules engine & ML models isolate anomalous packet handshake vectors in real-time.
+          <div style={{ padding: '14px', background: 'rgba(0, 255, 157, 0.05)', border: '1px solid var(--border-muted)', borderRadius: 'var(--radius-sm)', fontSize: '0.781rem', color: 'var(--text-secondary)' }}>
+            <strong style={{ color: 'var(--accent-primary)', fontFamily: 'var(--font-mono)' }}>CRYPTOGRAPHIC INTEGRITY:</strong> Scapy proposal parsing & XGBoost side-channel classifiers active in real-time.
           </div>
         </div>
       </div>
 
-      {/* Recent Captures Table */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-5)', borderBottom: '1px solid var(--border-subtle)' }}>
-          <h3 style={{ fontSize: '0.95rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
-            Recent Captures & Investigations
-          </h3>
+      {/* ── RECENT CAPTURES & INVESTIGATIONS HUD TABLE ────────────────── */}
+      <div className="hud-corner-box card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="hud-corner-bl" />
+        <div className="hud-corner-br" />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(255,255,255,0.02)' }}>
+          <div>
+            <div style={{ fontSize: '0.687rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontWeight: 700, letterSpacing: '0.08em' }}>
+              [ AUDIT LOG TELEMETRY ]
+            </div>
+            <h3 style={{ fontSize: '1rem', color: '#ffffff', margin: '2px 0 0 0', fontWeight: 700 }}>
+              Recent Packet Captures & Investigations
+            </h3>
+          </div>
+
           <button className="btn btn-ghost btn-sm" onClick={() => navigate('/captures')}>
-            View All Captures →
+            <span>VIEW ALL CAPTURES {'→'}</span>
           </button>
         </div>
 
@@ -337,10 +311,10 @@ export function DashboardPage() {
             <thead>
               <tr>
                 <th>Filename</th>
-                <th>System Risk</th>
-                <th>Severity</th>
-                <th>Behavioral Status</th>
-                <th>Ingested</th>
+                <th>System Risk Score</th>
+                <th>Severity Status</th>
+                <th>Behavioral ML Status</th>
+                <th>Ingestion Date</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -351,7 +325,7 @@ export function DashboardPage() {
                     <code>{c.filename}</code>
                   </td>
                   <td>
-                    <strong style={{ color: '#FFF', fontSize: '1rem' }}>{c.risk_score}</strong> <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 100</span>
+                    <strong style={{ color: 'var(--accent-primary)', fontSize: '1.05rem', fontFamily: 'var(--font-mono)' }}>{c.risk_score}</strong> <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 100</span>
                   </td>
                   <td>
                     <SeverityBadge severity={c.severity} />
@@ -367,16 +341,16 @@ export function DashboardPage() {
                       </span>
                     )}
                   </td>
-                  <td style={{ fontSize: '0.813rem', color: 'var(--text-muted)' }}>
+                  <td style={{ fontSize: '0.813rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                     {new Date(c.created_at).toLocaleDateString()}
                   </td>
                   <td>
                     <button
                       className="btn btn-primary btn-sm"
-                      style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                      style={{ padding: '4px 12px', fontSize: '0.72rem' }}
                       onClick={() => navigate(`/investigations/${c.id}`)}
                     >
-                      Investigate <ArrowRight size={12} style={{ marginLeft: 3 }} />
+                      <span>INVESTIGATE {'▶'}</span>
                     </button>
                   </td>
                 </tr>
@@ -385,22 +359,33 @@ export function DashboardPage() {
           </table>
         )}
       </div>
+
     </div>
   );
 }
 
-function KpiCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number | string; color: string }) {
+function KpiCard({ icon, label, value, color, subText }: { icon: React.ReactNode; label: string; value: number | string; color: string; subText?: string }) {
   return (
-    <div className="card metric-card" style={{ borderLeft: `4px solid ${color}` }}>
+    <div className="hud-corner-box card metric-card" style={{ borderLeft: `3px solid ${color}`, padding: '16px 20px' }}>
+      <div className="hud-corner-bl" />
+      <div className="hud-corner-br" />
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+        <span style={{ fontSize: '0.718rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
           {label}
         </span>
         <span style={{ color, filter: `drop-shadow(0 0 6px ${color})` }}>{icon}</span>
       </div>
-      <div style={{ fontSize: '2rem', fontWeight: 800, color: '#FFFFFF', lineHeight: 1.1, fontFamily: 'var(--font-heading)' }}>
+
+      <div style={{ fontSize: '2.1rem', fontWeight: 700, color: '#FFFFFF', lineHeight: 1.1, fontFamily: 'var(--font-mono)', margin: '4px 0' }}>
         {value}
       </div>
+
+      {subText && (
+        <div style={{ fontSize: '0.687rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          {subText}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -10,10 +11,14 @@ import {
   FlaskConical,
   Shield,
   Zap,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 interface SidebarProps {
   onAnalyze?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 const navSections = [
@@ -21,7 +26,7 @@ const navSections = [
     title: 'Overview',
     items: [
       { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', end: true },
-      { to: '/captures', icon: FolderOpen, label: 'Capture History', end: false },
+      { to: '/captures', icon: FolderOpen, label: 'Capture History', end: true },
       { to: '/captures/new', icon: Upload, label: 'New Capture', end: false },
     ]
   },
@@ -47,61 +52,91 @@ const navSections = [
   }
 ];
 
-export function Sidebar({ onAnalyze }: SidebarProps) {
+export function Sidebar({ onAnalyze, collapsed: propCollapsed, onToggleCollapse }: SidebarProps) {
   const navigate = useNavigate();
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+
+  const isCollapsed = propCollapsed !== undefined ? propCollapsed : internalCollapsed;
+  const toggleCollapse = onToggleCollapse || (() => setInternalCollapsed(!internalCollapsed));
 
   return (
-    <aside className="app-sidebar">
-      {/* Logo */}
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <Shield size={18} color="#ffffff" strokeWidth={2.5} />
-        </div>
-        <div className="sidebar-logo-text">
-          <span className="sidebar-logo-title">VANTAGE</span>
-          <span className="sidebar-logo-subtitle">IPsec Protocol Intelligence</span>
-        </div>
-      </div>
+    <aside className={`hud-floating-dock ${isCollapsed ? 'collapsed' : ''}`}>
+      <div className="hud-corner-box dock-inner">
+        <div className="hud-corner-bl" />
+        <div className="hud-corner-br" />
 
-      {/* Navigation */}
-      <nav className="sidebar-nav">
-        {navSections.map((sec, idx) => (
-          <div key={sec.title} style={{ marginTop: idx > 0 ? 14 : 0 }}>
-            <div className="sidebar-nav-section">{sec.title}</div>
-            {sec.items.map(({ to, icon: Icon, label, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) =>
-                  `sidebar-nav-item${isActive ? ' active' : ''}`
-                }
-              >
-                <Icon size={16} className="nav-icon" />
-                {label}
-              </NavLink>
-            ))}
+        {/* Dock Header & Logo */}
+        <div className="dock-header">
+          <div className="dock-logo" onClick={() => navigate('/')}>
+            <div className="dock-logo-icon">
+              <Shield size={18} color="#000000" strokeWidth={2.5} />
+            </div>
+            {!isCollapsed && (
+              <div className="dock-logo-text">
+                <span className="dock-logo-title">
+                  vantage<span style={{ color: 'var(--accent-primary)' }}>:</span>vpn
+                </span>
+                <span className="dock-logo-subtitle">[ NTRO SIH-26160 ]</span>
+              </div>
+            )}
           </div>
-        ))}
 
-        <div className="sidebar-nav-section" style={{ marginTop: 18 }}>Quick Action</div>
-
-        <button
-          className="btn btn-primary btn-sm"
-          style={{ width: '100%', marginTop: 4, justifyContent: 'flex-start', paddingLeft: 14 }}
-          onClick={() => (onAnalyze ? onAnalyze() : navigate('/captures/new'))}
-        >
-          <Zap size={14} fill="currentColor" />
-          <span>Analyze PCAP</span>
-        </button>
-      </nav>
-
-      {/* Footer */}
-      <div className="sidebar-footer">
-        <div style={{ marginBottom: 2, fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.813rem' }}>
-          Securify IPsec v1.0
+          <button
+            className="dock-toggle-btn"
+            onClick={toggleCollapse}
+            title={isCollapsed ? "Expand Navigation" : "Collapse Navigation"}
+          >
+            {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          </button>
         </div>
-        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>AI Cryptographic Shield</div>
+
+        {/* Navigation List */}
+        <nav className="dock-nav">
+          {navSections.map((sec, idx) => (
+            <div key={sec.title} style={{ marginTop: idx > 0 ? (isCollapsed ? 8 : 12) : 0 }}>
+              {!isCollapsed && <div className="dock-nav-section">[ {sec.title} ]</div>}
+
+              {sec.items.map(({ to, icon: Icon, label, end }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  className={({ isActive }) =>
+                    `dock-nav-item${isActive ? ' active' : ''}`
+                  }
+                  title={isCollapsed ? label : undefined}
+                >
+                  <Icon size={17} className="dock-icon" />
+                  {!isCollapsed && <span className="dock-label">{label}</span>}
+                  {isCollapsed && <span className="dock-tooltip">{label}</span>}
+                </NavLink>
+              ))}
+            </div>
+          ))}
+
+          {/* Quick Action Button */}
+          <div style={{ marginTop: 16 }}>
+            {!isCollapsed && <div className="dock-nav-section">[ QUICK ACTION ]</div>}
+
+            <button
+              className="btn btn-primary btn-sm dock-action-btn"
+              onClick={() => (onAnalyze ? onAnalyze() : navigate('/captures/new'))}
+              title="Analyze PCAP Capture"
+            >
+              <Zap size={15} fill="currentColor" />
+              {!isCollapsed && <span>ANALYZE PCAP {'▶'}</span>}
+            </button>
+          </div>
+        </nav>
+
+        {/* Dock Footer */}
+        <div className="dock-footer">
+          <div className="dock-status-pulse">
+            <span className="dock-pulse-dot" />
+            {!isCollapsed && <span>SYS SECURED // NIST 800-77</span>}
+          </div>
+        </div>
+
       </div>
     </aside>
   );

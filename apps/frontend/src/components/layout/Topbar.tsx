@@ -53,11 +53,11 @@ export function Topbar() {
       {/* Breadcrumbs */}
       <nav className="topbar-breadcrumb">
         <span style={{ cursor: 'pointer', color: 'var(--text-muted)' }} onClick={() => navigate('/')}>
-          Home
+          [ HOME ]
         </span>
         {crumbs.map((crumb, i) => (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <span className="crumb-sep" style={{ color: 'var(--text-disabled)' }}>›</span>
+            <span className="crumb-sep" style={{ color: 'var(--accent-primary)' }}>/</span>
             {crumb.to ? (
               <span
                 style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}
@@ -72,10 +72,10 @@ export function Topbar() {
         ))}
       </nav>
 
-      {/* Security Status Pill (Securify Reference) */}
+      {/* Security Status Pill Badge */}
       <div className="securify-pill-badge" style={{ display: 'flex', alignItems: 'center' }}>
         <span className="badge-pulse-dot" />
-        <span>Military-Grade Security VPN</span>
+        <span>VANTAGE ENGINE ACTIVE // NIST SP 800-77</span>
       </div>
 
       {/* Right actions */}
@@ -86,15 +86,15 @@ export function Topbar() {
           aria-label="Notifications"
           id="topbar-notifications-btn"
         >
-          <Bell size={15} />
+          <Bell size={14} />
         </button>
         <button
           className="btn btn-primary btn-sm"
           onClick={() => navigate('/captures/new')}
           id="topbar-analyze-btn"
         >
-          <Upload size={14} />
-          <span>Analyze PCAP</span>
+          <Upload size={13} />
+          <span>ANALYZE PCAP {'▶'}</span>
         </button>
       </div>
     </header>
